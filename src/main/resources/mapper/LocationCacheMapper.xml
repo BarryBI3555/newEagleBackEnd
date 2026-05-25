@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.LocationCacheMapper">
+
+    <resultMap id="LocationCacheResultMap" type="com.example.demo.entity.LocationCache">
+        <id column="id" property="id"/>
+        <result column="longitude" property="longitude"/>
+        <result column="latitude" property="latitude"/>
+        <result column="address" property="address"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="expire_time" property="expireTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.demo.entity.LocationCache">
+        INSERT INTO acd_location_address_cache (longitude, latitude, address, create_time, update_time, expire_time)
+        VALUES (#{longitude}, #{latitude}, #{address}, #{createTime}, #{updateTime}, #{expireTime})
+    </insert>
+
+    <select id="selectById" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateById" parameterType="com.example.demo.entity.LocationCache">
+        UPDATE acd_location_address_cache
+        SET 
+            longitude = #{longitude},
+            latitude = #{latitude},
+            address = #{address},
+            create_time = #{createTime},
+            update_time = #{updateTime},
+            expire_time = #{expireTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM acd_location_address_cache WHERE id = #{id}
+    </delete>
+
+    <select id="findByCoordinates" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE longitude = #{longitude} AND latitude = #{latitude}
+    </select>
+
+    <select id="findValidByCoordinates" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE longitude = #{longitude} AND latitude = #{latitude}
+          AND expire_time >= #{currentTime}
+        LIMIT 1
+    </select>
+
+    <select id="findByAddress" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE address = #{address}
+    </select>
+
+    <select id="findValidByAddress" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE address = #{address}
+          AND expire_time >= #{currentTime}
+    </select>
+
+    <select id="findByAddressLike" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE address LIKE #{addressPattern}
+    </select>
+
+    <select id="findValidByAddressLike" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE address LIKE #{addressPattern}
+          AND expire_time >= #{currentTime}
+    </select>
+
+</mapper>

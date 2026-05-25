@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.PrplCheckTaskMapper">
+
+    <resultMap id="PrplCheckTaskResultMap" type="com.example.demo.entity.PrplCheckTask">
+        <id column="id" property="id"/>
+        <result column="checklongitude" property="checklongitude"/>
+        <result column="checklatitude" property="checklatitude"/>
+        <result column="checkdate" property="checkdate"/>
+        <result column="checksite" property="checksite"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.demo.entity.PrplCheckTask">
+        INSERT INTO prplchecktask (checklongitude, checklatitude, checkdate, checksite)
+        VALUES (#{checklongitude}, #{checklatitude}, #{checkdate}, #{checksite})
+    </insert>
+
+    <select id="selectById" resultMap="PrplCheckTaskResultMap">
+        SELECT id, checklongitude, checklatitude, checkdate, checksite
+        FROM prplchecktask
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateById" parameterType="com.example.demo.entity.PrplCheckTask">
+        UPDATE prplchecktask
+        SET 
+            checklongitude = #{checklongitude},
+            checklatitude = #{checklatitude},
+            checkdate = #{checkdate},
+            checksite = #{checksite}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM prplchecktask WHERE id = #{id}
+    </delete>
+
+    <select id="getAllTasksByDate" resultMap="PrplCheckTaskResultMap">
+        SELECT id, checklongitude, checklatitude, checkdate, checksite
+        FROM prplchecktask
+        WHERE checkdate = #{date}
+    </select>
+
+    <!-- 直接在数据库层面聚合统计坐标点（保留3位小数） -->
+    <select id="getHeatDataByDate" resultType="java.util.Map">
+        SELECT 
+            ROUND(checklongitude, 3) as lng,
+            ROUND(checklatitude, 3) as lat,
+            COUNT(*) as count
+        FROM prplchecktask
+        WHERE checkdate = #{date}
+            AND checklongitude IS NOT NULL 
+            AND checklatitude IS NOT NULL
+            AND checklongitude != 0 
+            AND checklatitude != 0
+        GROUP BY ROUND(checklongitude, 3), ROUND(checklatitude, 3)
+        ORDER BY count DESC
+    </select>
+
+    <!-- 统计指定日期的数据总量 -->
+    <select id="countTasksByDate" resultType="int">
+        SELECT COUNT(*) FROM prplchecktask WHERE checkdate = #{date}
+    </select>
+
+</mapper>

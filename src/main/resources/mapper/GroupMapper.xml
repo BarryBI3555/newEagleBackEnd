@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.GroupMapper">
+
+    <resultMap id="GroupResultMap" type="com.example.demo.entity.Group">
+        <result column="groups" property="groups"/>
+        <result column="groupscode" property="groupscode"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.demo.entity.Group">
+        INSERT INTO acd_ryzd (groups, groupscode)
+        VALUES (#{groups}, #{groupscode})
+    </insert>
+
+    <select id="selectByGroupscode" resultMap="GroupResultMap">
+        SELECT distinct groups, groupscode
+        FROM acd_ryzd
+        WHERE groupscode = #{groupscode}
+        AND groupscode is not null
+    </select>
+
+    <update id="updateByGroupscode" parameterType="com.example.demo.entity.Group">
+        UPDATE acd_ryzd
+        SET groups = #{groups}
+        WHERE groupscode = #{groupscode}
+    </update>
+
+    <delete id="deleteByGroupscode">
+        DELETE FROM acd_ryzd WHERE groupscode = #{groupscode}
+    </delete>
+
+    <select id="selectAllGroups" resultMap="GroupResultMap">
+        SELECT distinct groups, groupscode
+        FROM acd_ryzd
+        WHERE groupscode is not null
+    </select>
+
+</mapper>

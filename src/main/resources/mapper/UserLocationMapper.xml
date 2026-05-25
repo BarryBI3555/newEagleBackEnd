@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.UserLocationMapper">
+
+    <resultMap id="UserLocationResultMap" type="com.example.demo.entity.UserLocation">
+        <id column="id" property="id"/>
+        <result column="usercode" property="usercode"/>
+        <result column="longitude" property="longitude"/>
+        <result column="latitude" property="latitude"/>
+        <result column="reporttime" property="createTime"/>
+        <result column="username" property="username"/>
+        <result column="groups" property="groups"/>
+        <result column="groupscode" property="groupscode"/>
+        <result column="ckl" property="ckl"/>
+        <result column="dsl" property="dsl"/>
+        <result column="hj" property="hj"/>
+        <result column="address" property="address"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.demo.entity.UserLocation">
+        INSERT INTO acd_jly_site (usercode, longitude, latitude, reporttime)
+        VALUES (#{usercode}, #{longitude}, #{latitude}, #{reportTime})
+    </insert>
+
+    <select id="selectById" resultMap="UserLocationResultMap">
+        SELECT id, usercode, longitude, latitude, reporttime
+        FROM acd_jly_site
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateById" parameterType="com.example.demo.entity.UserLocation">
+        UPDATE acd_jly_site
+        SET 
+            usercode = #{usercode},
+            longitude = #{longitude},
+            latitude = #{latitude},
+            reporttime = #{reportTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM acd_jly_site WHERE id = #{id}
+    </delete>
+
+    <select id="selectByUsercode" resultMap="UserLocationResultMap">
+        SELECT id, usercode, longitude, latitude, reporttime
+        FROM acd_jly_site
+        WHERE usercode = #{usercode}
+        ORDER BY reporttime DESC
+    </select>
+
+    <select id="getLatestLocationsByDate" resultMap="UserLocationResultMap">
+        SELECT a.id, a.usercode, a.longitude, a.latitude, a.reporttime,
+               b.username,b.groups,b.groupscode, b.ck_wcl ckl, b.ds_wcl dsl, (b.ck_wcl+b.ds_wcl) hj
+        FROM acd_jly_site a
+                 LEFT JOIN acd_dangri_gzl_ry b ON a.usercode = b.usercode
+        WHERE date(a.reporttime) = #{dateStr}
+          AND (a.usercode, a.reporttime) IN
+            (SELECT usercode, MAX(reporttime) FROM acd_jly_site
+            WHERE date(reporttime) = #{dateStr} GROUP BY usercode)
+        <if test="groupscode != null and groupscode != ''">
+            AND b.groupscode = #{groupscode}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+            b.username LIKE CONCAT('%', #{keyword}, '%')
+            OR a.usercode LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        AND groupscode is not null
+    </select>
+
+    <select id="getUserLocationsByDate" resultMap="UserLocationResultMap">
+        SELECT a.id, a.usercode, a.longitude, a.latitude, a.reporttime,
+               b.username,b.groups,b.groupscode, b.ck_wcl ckl, b.ds_wcl dsl, (b.ck_wcl+b.ds_wcl) hj
+        FROM acd_jly_site a
+                 LEFT JOIN acd_dangri_gzl_ry b ON a.usercode = b.usercode
+        WHERE a.usercode = #{usercode} AND date(a.reporttime) = #{dateStr}
+        AND groupscode is not null
+        ORDER BY a.reporttime ASC
+    </select>
+
+    <select id="getAllLocationsOrderByTime" resultMap="UserLocationResultMap">
+        SELECT id, usercode, longitude, latitude, reporttime
+        FROM acd_jly_site
+        WHERE date(reporttime) = #{dateStr}
+        ORDER BY reporttime ASC
+    </select>
+
+    <select id="selectAll" resultMap="UserLocationResultMap">
+        SELECT id, usercode, longitude, latitude, reporttime
+        FROM acd_jly_site
+        ORDER BY reporttime DESC
+    </select>
+
+</mapper>

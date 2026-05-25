@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ReportTableMapper">
+
+    <select id="getMaxTjDate" resultType="java.lang.String">
+        SELECT MAX(tjdate)
+        FROM acd_dangri_gzl_ry
+        WHERE groups IS NOT NULL
+          AND groupscode NOT IN ('5101701','5101702','5101703')
+    </select>
+
+    <select id="getCurGzlData" resultType="com.example.demo.entity.CurGzlTableRy">
+        SELECT a.comname as comName, a.username as userName, a.usercode as userCode, 
+               a.groups, a.groupscode as groupsCode,
+               max(a.tjtime) as maxTjTime,
+               sum(ck_jsl) as ckJsl, sum(ck_jsl_wcl) as ckJslWcl, sum(ck_wcl) as ckWcl, 
+               sum(ds_tjl) as dsTjl, sum(ds_wcl) as dsWcl, sum(ds_zfl) as dsZfl, 
+               sum(shougen) as shouGen, sum(hougen) as houGen, sum(tiaojie) as tiaoJie, 
+               sum(ja) as ja, sum(zl) as zl
+        FROM acd_dangri_gzl_ry a
+        WHERE a.groups is not null
+          AND a.groupscode not in ('5101701','5101702','5101703')
+          AND a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+          <if test="comName != null and comName != ''">
+              AND a.comname like concat('%', #{comName}, '%')
+          </if>
+          <if test="groups != null and groups != ''">
+              AND a.groups like concat('%', #{groups}, '%')
+          </if>
+          <if test="userName != null and userName != ''">
+              AND a.username like concat('%', #{userName}, '%')
+          </if>
+        GROUP BY 1,2,3,4,5
+        ORDER BY comName desc
+    </select>
+
+    <!-- ===================== 新表：部门统计 ===================== -->
+    <select id="getCurGzlDataBm" resultType="com.example.demo.entity.CurGzlTableBm">
+        SELECT a.comcode as comCode,
+        a.comname as comName,
+        max(a.tjtime) as maxTjTime,
+        sum(ck_jsl) as ckJsl,
+        sum(ck_jsl_wcl) as ckJslWcl,
+        sum(ck_wcl) as ckWcl,
+        sum(ds_tjl) as dsTjl,
+        sum(ds_wcl) as dsWcl,
+        sum(ds_zfl) as dsZfl,
+        sum(shougen) as shouGen,
+        sum(hougen) as houGen,
+        sum(tiaojie) as tiaoJie,
+        sum(ja) as ja,
+        sum(zl) as zl
+        FROM acd_dangri_gzl_bm a
+        WHERE a.tjdate &gt;= #{startDate}
+        AND a.tjdate &lt;= #{endDate}
+        <if test="comName != null and comName != ''">
+            AND a.comname like concat('%', #{comName}, '%')
+        </if>
+        GROUP BY 1,2
+        ORDER BY comName desc
+    </select>
+
+    <!-- 通用：根据表名获取最大统计日期 -->
+    <select id="getMaxTjDateByTable" resultType="java.lang.String">
+        SELECT MAX(tjdate)
+        FROM ${tableName}
+    </select>
+
+    <!-- ===================== 小组统计表 ===================== -->
+    <select id="getCurGzlDataGroup" resultType="com.example.demo.entity.CurGzlTableGroup">
+        SELECT a.comcode as comCode,
+        a.comname as comName,
+        a.groups as groups,
+        a.groupscode as groupsCode,
+        max(a.tjtime) as maxTjTime,
+        sum(ck_jsl) as ckJsl,
+        sum(ck_jsl_wcl) as ckJslWcl,
+        sum(ck_wcl) as ckWcl,
+        sum(ds_tjl) as dsTjl,
+        sum(ds_wcl) as dsWcl,
+        sum(ds_zfl) as dsZfl,
+        sum(shougen) as shouGen,
+        sum(hougen) as houGen,
+        sum(tiaojie) as tiaoJie,
+        sum(ja) as ja,
+        sum(zl) as zl
+        FROM acd_dangri_gzl_group a
+        WHERE a.tjdate &gt;= #{startDate}
+        AND a.tjdate &lt;= #{endDate}
+        AND a.groups is not null
+        AND a.groupscode not in ('5101701','5101702','5101703')
+        <if test="comName != null and comName != ''">
+            AND a.comname like concat('%', #{comName}, '%')
+        </if>
+        <if test="groups != null and groups != ''">
+            AND a.groups like concat('%', #{groups}, '%')
+        </if>
+        GROUP BY 1,2,3,4
+        ORDER BY comName desc, groupsCode asc
+    </select>
+
+    <!-- ===================== 住院门诊调解结案统计表 ===================== -->
+    <select id="getCurGzlDataRs" resultType="com.example.demo.entity.CurGzlTableRs">
+        SELECT a.comcode as comCode,
+        a.comname as comName,
+        max(a.tjtime) as maxTjTime,
+        sum(shougen) as shouGen,
+        sum(hougen) as houGen,
+        sum(tiaojie_zhuyuan) as tiaojieZhuyuan,
+        sum(tiaojie_menzheng) as tiaojieMenzheng,
+        sum(jiean_zhuyuan) as jieanZhuyuan,
+        sum(jiean_mengzheng) as jieanMengzheng
+        FROM acd_dangri_gzl_rs a
+        WHERE a.tjdate &gt;= #{startDate}
+        AND a.tjdate &lt;= #{endDate}
+        <if test="comName != null and comName != ''">
+            AND a.comname like concat('%', #{comName}, '%')
+        </if>
+        GROUP BY 1,2
+        ORDER BY comName desc
+    </select>
+
+</mapper>
