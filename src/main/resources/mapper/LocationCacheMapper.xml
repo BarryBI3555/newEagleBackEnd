@@ -79,4 +79,14 @@
           AND expire_time >= #{currentTime}
     </select>
 
+    <select id="findValidByCoordinatesBatch" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE expire_time >= #{currentTime}
+          AND (longitude, latitude) IN
+          <foreach collection="coordList" item="coord" separator="," open="(" close=")">
+              (#{coord.longitude}, #{coord.latitude})
+          </foreach>
+    </select>
+
 </mapper>
