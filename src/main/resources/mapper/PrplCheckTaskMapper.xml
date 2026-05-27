@@ -49,10 +49,12 @@
             COUNT(*) as count
         FROM prplchecktask
         WHERE checkdate = #{date}
-            AND checklongitude IS NOT NULL 
+            AND checklongitude IS NOT NULL
             AND checklatitude IS NOT NULL
-            AND checklongitude != 0 
+            AND checklongitude != 0
             AND checklatitude != 0
+            AND checklongitude >= 102.5 AND checklongitude &lt;= 104.9
+            AND checklatitude >= 30.0 AND checklatitude &lt;= 31.5
         GROUP BY ROUND(checklongitude, 3), ROUND(checklatitude, 3)
         ORDER BY count DESC
     </select>

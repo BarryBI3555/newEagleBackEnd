@@ -27,6 +27,12 @@ public class HotmapServiceImpl implements HotmapService {
     // 最大返回的坐标点数量
     private static final int MAX_HEAT_POINTS = 10000;
 
+    // 成都区域经纬度边界
+    private static final double CD_MIN_LNG = 102.5;
+    private static final double CD_MAX_LNG = 104.9;
+    private static final double CD_MIN_LAT = 30.0;
+    private static final double CD_MAX_LAT = 31.5;
+
     @Autowired
     private PrplCheckTaskMapper prplCheckTaskMapper;
 
@@ -84,13 +90,22 @@ public class HotmapServiceImpl implements HotmapService {
             }
         }
         
-        // 返回当前缓存的数据（限制数量）
-        if (cachedData.size() > MAX_HEAT_POINTS) {
-            logger.warn("热力图数据量超过最大限制 {}，已截断", MAX_HEAT_POINTS);
-            return cachedData.subList(0, MAX_HEAT_POINTS);
+        // 返回当前缓存的数据（限制数量，并过滤非成都区域）
+        List<HeatData> filteredData = new ArrayList<>();
+        for (HeatData hd : cachedData) {
+            if (hd.getLng() != null && hd.getLat() != null
+                    && hd.getLng() >= CD_MIN_LNG && hd.getLng() <= CD_MAX_LNG
+                    && hd.getLat() >= CD_MIN_LAT && hd.getLat() <= CD_MAX_LAT) {
+                filteredData.add(hd);
+            }
         }
-        
-        return cachedData;
+
+        if (filteredData.size() > MAX_HEAT_POINTS) {
+            logger.warn("热力图数据量超过最大限制 {}，已截断", MAX_HEAT_POINTS);
+            return filteredData.subList(0, MAX_HEAT_POINTS);
+        }
+
+        return filteredData;
     }
     
     /**

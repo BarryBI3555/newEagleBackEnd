@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 
 import com.example.demo.entity.UserLocation;
+import com.example.demo.service.LocationProgressCacheService;
 import com.example.demo.service.UserLocationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 // @CrossOrigin("*")
@@ -21,6 +24,9 @@ public class LocationController {
 
     @Autowired
     private UserLocationService userLocationService;
+
+    @Autowired
+    private LocationProgressCacheService locationProgressCacheService;
 
     @GetMapping("/locations")
     public List<UserLocation> getLocations() {
@@ -46,6 +52,21 @@ public class LocationController {
     ) {
         LocalDate queryDate = date == null ? LocalDate.now() : LocalDate.parse(date);
         return userLocationService.getUserLocationsByDate(usercode, queryDate);
+    }
+
+    // ====================== 获取地址解析进度 ======================
+    @GetMapping("/locations/latest/progress")
+    public Map<String, Object> getLocationProgress(
+            @RequestParam(required = false) String date
+    ) {
+        LocalDate queryDate = date == null ? LocalDate.now() : LocalDate.parse(date);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("processing", locationProgressCacheService.isProcessing(queryDate));
+        result.put("progress", locationProgressCacheService.getProgress(queryDate));
+        result.put("complete", locationProgressCacheService.isComplete(queryDate));
+
+        return result;
     }
 
 }

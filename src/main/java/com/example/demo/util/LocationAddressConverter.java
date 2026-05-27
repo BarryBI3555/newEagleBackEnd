@@ -4,6 +4,7 @@ import com.example.demo.entity.GeocodeResult;
 import com.example.demo.entity.LocationCache;
 import com.example.demo.entity.UserLocation;
 import com.example.demo.mapper.LocationCacheMapper;
+import com.example.demo.service.LocationProgressCacheService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -84,10 +86,15 @@ public class LocationAddressConverter {
     // 批量写入锁
     private final Object batchWriteLock = new Object();
 
+    // 位置进度追踪服务
+    private final LocationProgressCacheService locationProgressCacheService;
+
     @Autowired
-    public LocationAddressConverter(LocationCacheMapper locationCacheMapper, RestTemplate restTemplate) {
+    public LocationAddressConverter(LocationCacheMapper locationCacheMapper, RestTemplate restTemplate,
+                                     LocationProgressCacheService locationProgressCacheService) {
         this.locationCacheMapper = locationCacheMapper;
         this.restTemplate = restTemplate;
+        this.locationProgressCacheService = locationProgressCacheService;
     }
 
     /**
@@ -493,11 +500,28 @@ public class LocationAddressConverter {
                 }
             }
             
+            // 初始化进度追踪
+            if (!uniqueList.isEmpty()) {
+                try {
+                    UserLocation firstLoc = uniqueList.get(0);
+                    if (firstLoc.getCreateTime() != null) {
+                        LocalDate date = firstLoc.getCreateTime().toLocalDate();
+                        locationProgressCacheService.setProcessing(date, true);
+                        int firstBatchSize = processFirstBatch ? Math.min(BATCH_SIZE, totalSize) : 0;
+                        int progress = (int) ((firstBatchSize * 100.0) / totalSize);
+                        locationProgressCacheService.setProgress(date, progress);
+                        logger.info("位置地址解析进度初始化: date={}, progress={}%", date, progress);
+                    }
+                } catch (Exception e) {
+                    logger.warn("初始化进度追踪失败: {}", e.getMessage());
+                }
+            }
+
             // 使用executorService异步处理剩余批次
             executorService.submit(() -> {
                 processRemainingBatchesAsync(remainingList, remainingCoordMap, batchCount - 1);
             });
-            
+
             logger.info("剩余 {} 个坐标已提交后台异步处理", remainingList.size());
         }
 
@@ -570,9 +594,39 @@ public class LocationAddressConverter {
             }
             
             logger.info("异步第 {}/{} 批次处理完成", batchIndex + 1, batchCount);
+
+            // 报告进度
+            try {
+                if (!remainingList.isEmpty()) {
+                    UserLocation firstLoc = remainingList.get(0);
+                    if (firstLoc.getCreateTime() != null) {
+                        LocalDate date = firstLoc.getCreateTime().toLocalDate();
+                        int overallTotal = BATCH_SIZE + totalSize;
+                        int overallProcessed = BATCH_SIZE + processedCount;
+                        int progress = (int) ((overallProcessed * 100.0) / overallTotal);
+                        locationProgressCacheService.setProgress(date, progress);
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("更新进度失败: {}", e.getMessage());
+            }
         }
-        
+
         logger.info("所有异步处理完成，共处理 {} 个坐标", processedCount);
+
+        // 标记完成
+        try {
+            if (!remainingList.isEmpty()) {
+                UserLocation firstLoc = remainingList.get(0);
+                if (firstLoc.getCreateTime() != null) {
+                    LocalDate date = firstLoc.getCreateTime().toLocalDate();
+                    locationProgressCacheService.setComplete(date);
+                    logger.info("位置地址解析全部完成: date={}", date);
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("标记完成失败: {}", e.getMessage());
+        }
     }
 
     /**
@@ -877,7 +931,7 @@ public class LocationAddressConverter {
             return buildResultFromCache(address, cache);
         }
         
-        // ====================== 尝试模糊查询（提取成都或四川省开始的9/12个字） ======================
+        // ====================== 尝试模糊查询（截取地址前20个字） ======================
         String fuzzyKey = extractFuzzyKey(address);
         if (fuzzyKey != null) {
             String addressPattern = "%" + fuzzyKey + "%";
@@ -888,17 +942,20 @@ public class LocationAddressConverter {
             }
         }
 
+        // 智能追加城市前缀：不包含"成都市"则追加"四川省成都市"
+        String queryAddress = buildGeocodeQueryAddress(address);
+
         int retryCount = 0;
         int maxRetries = 3;
-        
+
         while (retryCount < maxRetries) {
             try {
                 // 等待速率限制
                 waitForRateLimit();
-                
-                // URL编码地址
-                String encodedAddress = java.net.URLEncoder.encode(address, "UTF-8");
-                
+
+                // URL编码地址（使用带前缀的地址进行API查询）
+                String encodedAddress = java.net.URLEncoder.encode(queryAddress, "UTF-8");
+
                 // 构建请求URL
                 String url = tencentMapDomain + "/ws/geocoder/v1/"
                         + "?address=" + encodedAddress
@@ -906,7 +963,7 @@ public class LocationAddressConverter {
                         + "&policy=1"    // 宽松模式，允许地址中缺失城市
                         + "&output=json";
 
-                logger.debug("发送正向地理编码请求: address={}", address);
+                logger.debug("发送正向地理编码请求: original={}, query={}", address, queryAddress);
                 String jsonResp = restTemplate.getForObject(url, String.class);
                 JsonNode root = objectMapper.readTree(jsonResp);
 
@@ -1054,37 +1111,36 @@ public class LocationAddressConverter {
         return result;
     }
 
+    private static final int MAX_FUZZY_ADDRESS_LENGTH = 20;
+
     /**
-     * 提取模糊查询关键字：从"成都"或"四川省"开始取9个字/12个字
+     * 智能追加城市前缀：如果地址不包含"成都市"，则追加"四川省成都市"前缀
      * @param address 原始地址
-     * @return 提取的关键字（最多9/12个字），如果不包含成都或四川省则返回null
+     * @return 带前缀的查询地址
+     */
+    private String buildGeocodeQueryAddress(String address) {
+        if (address == null || address.trim().isEmpty()) {
+            return address;
+        }
+        if (address.contains("成都市")) {
+            return address;
+        }
+        return "四川省成都市" + address;
+    }
+
+    /**
+     * 提取模糊查询关键字：限制最大长度为20个字
+     * @param address 原始地址
+     * @return 截取后的地址（最多20个字），如果地址为空或过短则返回null
      */
     private String extractFuzzyKey(String address) {
         if (address == null || address.length() < 2) {
             return null;
         }
-        
-        int startIndex = -1;
-        int extractLength = 9; // 默认取9个字
-        
-        // 优先匹配"四川省"（3个字），取12字
-        if (address.contains("四川")) {
-            startIndex = address.indexOf("四川");
-            extractLength = 12;
-        } 
-        // 其次匹配"成都"（2个字），取9字
-        else if (address.contains("成都")) {
-            startIndex = address.indexOf("成都");
-            extractLength = 9;
+        if (address.length() <= MAX_FUZZY_ADDRESS_LENGTH) {
+            return address;
         }
-        
-        if (startIndex == -1) {
-            return null;
-        }
-        
-        // 从匹配位置开始取指定长度的字
-        int endIndex = Math.min(startIndex + extractLength, address.length());
-        return address.substring(startIndex, endIndex);
+        return address.substring(0, MAX_FUZZY_ADDRESS_LENGTH);
     }
 
     /**

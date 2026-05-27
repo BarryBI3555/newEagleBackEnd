@@ -31,6 +31,12 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
     @Autowired
     private HeatDataCacheService cacheService;
 
+    // 成都区域经纬度边界
+    private static final double CD_MIN_LNG = 102.5;
+    private static final double CD_MAX_LNG = 104.9;
+    private static final double CD_MIN_LAT = 30.0;
+    private static final double CD_MAX_LAT = 31.5;
+
     @Async("geocodeExecutor")
     @Override
     public void asyncGeocodeAddresses(LocalDate date, String dateStr) {
@@ -80,12 +86,16 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
                         Double lng = result.getResult().getLocation().getLng();
                         Double lat = result.getResult().getLocation().getLat();
 
-                        HeatData heatData = new HeatData();
-                        heatData.setLng(lng);
-                        heatData.setLat(lat);
-                        heatData.setCount(1);
-                        geocodeResults.add(heatData);
-                        successCount++;
+                        // 过滤非成都区域的坐标
+                        if (lng >= CD_MIN_LNG && lng <= CD_MAX_LNG
+                                && lat >= CD_MIN_LAT && lat <= CD_MAX_LAT) {
+                            HeatData heatData = new HeatData();
+                            heatData.setLng(lng);
+                            heatData.setLat(lat);
+                            heatData.setCount(1);
+                            geocodeResults.add(heatData);
+                            successCount++;
+                        }
                     } else {
                         failCount++;
                     }
