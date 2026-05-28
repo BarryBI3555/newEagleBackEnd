@@ -89,4 +89,21 @@
           </foreach>
     </select>
 
+    <select id="findByCoordinatesBatch" resultMap="LocationCacheResultMap">
+        SELECT id, longitude, latitude, address, create_time, update_time, expire_time
+        FROM acd_location_address_cache
+        WHERE (longitude, latitude) IN
+        <foreach collection="coordList" item="coord" separator="," open="(" close=")">
+            (#{coord.longitude}, #{coord.latitude})
+        </foreach>
+    </select>
+
+    <insert id="insertBatch">
+        INSERT INTO acd_location_address_cache (longitude, latitude, address, create_time, update_time, expire_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.longitude}, #{item.latitude}, #{item.address}, #{item.createTime}, #{item.updateTime}, #{item.expireTime})
+        </foreach>
+    </insert>
+
 </mapper>

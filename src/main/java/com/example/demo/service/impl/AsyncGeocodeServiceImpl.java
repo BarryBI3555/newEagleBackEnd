@@ -10,7 +10,6 @@ import com.example.demo.util.LocationAddressConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -37,9 +36,8 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
     private static final double CD_MIN_LAT = 30.0;
     private static final double CD_MAX_LAT = 31.5;
 
-    @Async("geocodeExecutor")
     @Override
-    public void asyncGeocodeAddresses(LocalDate date, String dateStr) {
+    public void doGeocodeAddresses(LocalDate date, String dateStr) {
         logger.info("开始异步地址解析任务: date={}", dateStr);
 
         try {
@@ -78,6 +76,11 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
             List<HeatData> geocodeResults = new ArrayList<>();
 
             for (PrplCheckTask task : tasksToGeocode) {
+                if (Thread.currentThread().isInterrupted()) {
+                    logger.info("异步地址解析被取消: date={}, 已处理={}/{}", dateStr, processed, total);
+                    cacheService.setProcessing(date, false);
+                    return;
+                }
                 try {
                     GeocodeResult result = addressConverter.geocode(task.getChecksite());
                     if (result != null && result.getStatus() == 0 && result.getResult() != null

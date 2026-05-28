@@ -36,7 +36,7 @@ public class UserLocationServiceImpl implements UserLocationService {
         
         // 使用异步批量转换：先处理第一批并返回，剩余批次后台异步处理
         // processFirstBatch=true：先同步处理第一批，立即返回结果
-        addressConverter.convertBatchWithAsync(list, true);
+        addressConverter.convertBatchWithAsync(list, true, "location:" + date.toString());
         
         // 按usercode去重，每个用户只保留最新的一条记录
         Map<String, UserLocation> latestByUser = list.stream()

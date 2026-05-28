@@ -8,6 +8,7 @@ import com.example.demo.mapper.PrplCheckTaskMapper;
 import com.example.demo.service.AsyncGeocodeService;
 import com.example.demo.service.HeatDataCacheService;
 import com.example.demo.service.HotmapService;
+import com.example.demo.util.GeocodeScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class HotmapServiceImpl implements HotmapService {
 
     @Autowired
     private AsyncGeocodeService asyncGeocodeService;
+
+    @Autowired
+    private GeocodeScheduler geocodeScheduler;
     
     @Value("${app.heatmap.enable-geocode:true}")
     private boolean enableGeocode;
@@ -83,7 +87,8 @@ public class HotmapServiceImpl implements HotmapService {
                 logger.info("启动异步地址解析任务");
                 cacheService.setProcessing(date, true);
                 cacheService.setProgress(date, 0);
-                asyncGeocodeService.asyncGeocodeAddresses(date, dateStr);
+                String taskKey = "hotmap:" + dateStr;
+                geocodeScheduler.submit(taskKey, () -> asyncGeocodeService.doGeocodeAddresses(date, dateStr));
             } else {
                 // 数据量匹配，标记为已完成
                 cacheService.setCacheComplete(date);

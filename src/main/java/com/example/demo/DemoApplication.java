@@ -9,15 +9,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.concurrent.Executor;
 
 @SpringBootApplication
 @MapperScan("com.example.demo.mapper")
-@EnableAsync
 public class DemoApplication {
 
     public static void main(String[] args) {
@@ -27,19 +22,6 @@ public class DemoApplication {
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate(clientHttpRequestFactory());
-    }
-
-    @Bean(name = "geocodeExecutor")
-    public Executor geocodeExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(5);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("geocode-");
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(60);
-        executor.initialize();
-        return executor;
     }
 
     @Bean

@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class LocationAddressConverter {
@@ -41,16 +40,9 @@ public class LocationAddressConverter {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final LocationCacheMapper locationCacheMapper;
 
-    // 线程池 - 单线程顺序执行，确保严格的速率控制
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    
     // 异步写入线程池
     private final ExecutorService writeExecutorService = Executors.newSingleThreadExecutor();
 
-    // 请求计数器和上次重置时间
-    private final AtomicInteger requestCount = new AtomicInteger(0);
-    private volatile long lastResetTime = System.currentTimeMillis();
-    
     // 每秒最大请求数（保守设置为3，腾讯地图免费版通常是5，但建议留有余量）
     private static final int MAX_REQUESTS_PER_SECOND = 3;
     // 请求间隔（毫秒）- 确保每个请求之间有足够的间隔
@@ -89,12 +81,16 @@ public class LocationAddressConverter {
     // 位置进度追踪服务
     private final LocationProgressCacheService locationProgressCacheService;
 
+    private final GeocodeScheduler geocodeScheduler;
+
     @Autowired
     public LocationAddressConverter(LocationCacheMapper locationCacheMapper, RestTemplate restTemplate,
-                                     LocationProgressCacheService locationProgressCacheService) {
+                                     LocationProgressCacheService locationProgressCacheService,
+                                     GeocodeScheduler geocodeScheduler) {
         this.locationCacheMapper = locationCacheMapper;
         this.restTemplate = restTemplate;
         this.locationProgressCacheService = locationProgressCacheService;
+        this.geocodeScheduler = geocodeScheduler;
     }
 
     /**
@@ -102,13 +98,16 @@ public class LocationAddressConverter {
      */
     @PostConstruct
     public void init() {
-        // 启动定时批量写入任务
         writeScheduler = Executors.newSingleThreadScheduledExecutor();
-        writeScheduler.scheduleAtFixedRate(this::flushWriteQueue, 
-            SCHEDULED_WRITE_INTERVAL_SECONDS, 
-            SCHEDULED_WRITE_INTERVAL_SECONDS, 
+        // 定时批量写入（每10秒）
+        writeScheduler.scheduleAtFixedRate(this::flushWriteQueue,
+            SCHEDULED_WRITE_INTERVAL_SECONDS,
+            SCHEDULED_WRITE_INTERVAL_SECONDS,
             TimeUnit.SECONDS);
-        logger.info("LocationAddressConverter 初始化完成，启动定时批量写入任务");
+        // 定时清理过期本地缓存（每5分钟）
+        writeScheduler.scheduleAtFixedRate(this::cleanExpiredLocalCache,
+            5, 5, TimeUnit.MINUTES);
+        logger.info("LocationAddressConverter 初始化完成");
     }
 
     /**
@@ -116,7 +115,6 @@ public class LocationAddressConverter {
      */
     @PreDestroy
     public void destroy() {
-        executorService.shutdown();
         writeExecutorService.shutdown();
         if (writeScheduler != null) {
             writeScheduler.shutdown();
@@ -138,10 +136,11 @@ public class LocationAddressConverter {
 
         // 过滤出需要解析的坐标
         List<UserLocation> needConvertList = new ArrayList<>();
-        
+
         // 收集所有需要查询缓存的坐标（用于批量查询）
         List<Map<String, Double>> coordList = new ArrayList<>();
         Map<String, UserLocation> coordToLocationMap = new HashMap<>();
+        Set<String> addedCoords = new HashSet<>();
 
         for (UserLocation loc : locationList) {
 
@@ -165,8 +164,9 @@ public class LocationAddressConverter {
             // 记录坐标到位置的映射
             coordToLocationMap.put(coordKey, loc);
 
-            // 收集需要查询的坐标（去重）
-            if (!coordList.stream().anyMatch(m -> m.get("longitude").equals(lng) && m.get("latitude").equals(lat))) {
+            // 收集需要查询的坐标（O(1)去重）
+            String dedupKey = lng + "," + lat;
+            if (addedCoords.add(dedupKey)) {
                 Map<String, Double> coordMap = new HashMap<>();
                 coordMap.put("longitude", lng);
                 coordMap.put("latitude", lat);
@@ -177,7 +177,7 @@ public class LocationAddressConverter {
         // 批量查询缓存（先查本地缓存，再查DB）
         Map<String, String> cacheResultMap = new HashMap<>();
         List<Map<String, Double>> needDbQueryList = new ArrayList<>();
-        
+
         if (!coordList.isEmpty()) {
             logger.info("批量查询缓存，共 {} 个坐标", coordList.size());
             
@@ -282,11 +282,7 @@ public class LocationAddressConverter {
                         
                         // 执行转换（转换成功后会自动保存到缓存）
                         convertSingleLocation(loc);
-                        
-                        // 请求成功后增加计数
-                        int count = requestCount.incrementAndGet();
-                        logger.debug("已发送第 {} 个请求", count);
-                        
+
                         // 重置连续错误计数
                         consecutiveErrors = 0;
                         
@@ -327,15 +323,16 @@ public class LocationAddressConverter {
      * @param processFirstBatch 是否先处理第一批再返回（true: 先处理第一批；false: 立即返回，全部后台处理）
      * @return 立即返回已处理缓存的结果，未处理的标记为"解析中"
      */
-    public List<UserLocation> convertBatchWithAsync(List<UserLocation> locationList, boolean processFirstBatch) {
+    public List<UserLocation> convertBatchWithAsync(List<UserLocation> locationList, boolean processFirstBatch, String taskKey) {
         if (locationList == null || locationList.isEmpty()) return locationList;
 
         // 过滤出需要解析的坐标
         List<UserLocation> needConvertList = new ArrayList<>();
-        
+
         // 收集所有需要查询缓存的坐标（用于批量查询）
         List<Map<String, Double>> coordList = new ArrayList<>();
         Map<String, UserLocation> coordToLocationMap = new HashMap<>();
+        Set<String> addedCoords = new HashSet<>();
 
         for (UserLocation loc : locationList) {
 
@@ -359,8 +356,8 @@ public class LocationAddressConverter {
             // 记录坐标到位置的映射
             coordToLocationMap.put(coordKey, loc);
 
-            // 收集需要查询的坐标（去重）
-            if (!coordList.stream().anyMatch(m -> m.get("longitude").equals(lng) && m.get("latitude").equals(lat))) {
+            // 收集需要查询的坐标（O(1)去重）
+            if (addedCoords.add(coordKey)) {
                 Map<String, Double> coordMap = new HashMap<>();
                 coordMap.put("longitude", lng);
                 coordMap.put("latitude", lat);
@@ -371,7 +368,7 @@ public class LocationAddressConverter {
         // 批量查询缓存（先查本地缓存，再查DB）
         Map<String, String> cacheResultMap = new HashMap<>();
         List<Map<String, Double>> needDbQueryList = new ArrayList<>();
-        
+
         if (!coordList.isEmpty()) {
             logger.info("异步模式 - 批量查询缓存，共 {} 个坐标", coordList.size());
             
@@ -467,14 +464,12 @@ public class LocationAddressConverter {
                 try {
                     waitForRateLimit();
                     convertSingleLocation(loc);
-                    int count = requestCount.incrementAndGet();
-                    logger.debug("已发送第 {} 个请求", count);
                 } catch (Exception e) {
                     logger.error("坐标解析异常: {}", e.getMessage());
                     loc.setAddress("解析异常");
                 }
             }
-            
+
             // 回填第一批结果
             for (UserLocation loc : needConvertList) {
                 String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
@@ -504,21 +499,19 @@ public class LocationAddressConverter {
             if (!uniqueList.isEmpty()) {
                 try {
                     UserLocation firstLoc = uniqueList.get(0);
-                    if (firstLoc.getCreateTime() != null) {
-                        LocalDate date = firstLoc.getCreateTime().toLocalDate();
-                        locationProgressCacheService.setProcessing(date, true);
-                        int firstBatchSize = processFirstBatch ? Math.min(BATCH_SIZE, totalSize) : 0;
-                        int progress = (int) ((firstBatchSize * 100.0) / totalSize);
-                        locationProgressCacheService.setProgress(date, progress);
-                        logger.info("位置地址解析进度初始化: date={}, progress={}%", date, progress);
-                    }
+                    LocalDate date = getDateFromLocation(firstLoc);
+                    locationProgressCacheService.setProcessing(date, true);
+                    int firstBatchSize = processFirstBatch ? Math.min(BATCH_SIZE, totalSize) : 0;
+                    int progress = (int) ((firstBatchSize * 100.0) / totalSize);
+                    locationProgressCacheService.setProgress(date, progress);
+                    logger.info("位置地址解析进度初始化: date={}, progress={}%", date, progress);
                 } catch (Exception e) {
                     logger.warn("初始化进度追踪失败: {}", e.getMessage());
                 }
             }
 
-            // 使用executorService异步处理剩余批次
-            executorService.submit(() -> {
+            // 通过统一调度器异步处理剩余批次
+            geocodeScheduler.submit(taskKey, () -> {
                 processRemainingBatchesAsync(remainingList, remainingCoordMap, batchCount - 1);
             });
 
@@ -561,13 +554,27 @@ public class LocationAddressConverter {
             logger.info("异步处理第 {}/{} 批次，共 {} 个坐标", batchIndex + 1, batchCount, batchList.size());
             
             for (UserLocation loc : batchList) {
+                // 检查任务是否被取消
+                if (geocodeScheduler.isInterrupted()) {
+                    logger.info("异步地址解析任务被取消，已处理 {} 个坐标", processedCount);
+                    try {
+                        if (!remainingList.isEmpty()) {
+                            UserLocation firstLoc = remainingList.get(0);
+                            LocalDate date = getDateFromLocation(firstLoc);
+                            locationProgressCacheService.setProcessing(date, false);
+                        }
+                    } catch (Exception ex) {
+                        logger.warn("更新取消状态失败: {}", ex.getMessage());
+                    }
+                    return;
+                }
                 try {
                     // 检查是否需要等待连接冷却
                     waitForConnectionCoolDown();
-                    
+
                     // 检查是否需要等待API配额冷却
                     waitForRateLimitCoolDown();
-                    
+
                     waitForRateLimit();
                     convertSingleLocation(loc);
                     processedCount++;
@@ -599,13 +606,11 @@ public class LocationAddressConverter {
             try {
                 if (!remainingList.isEmpty()) {
                     UserLocation firstLoc = remainingList.get(0);
-                    if (firstLoc.getCreateTime() != null) {
-                        LocalDate date = firstLoc.getCreateTime().toLocalDate();
-                        int overallTotal = BATCH_SIZE + totalSize;
-                        int overallProcessed = BATCH_SIZE + processedCount;
-                        int progress = (int) ((overallProcessed * 100.0) / overallTotal);
-                        locationProgressCacheService.setProgress(date, progress);
-                    }
+                    LocalDate date = getDateFromLocation(firstLoc);
+                    int overallTotal = BATCH_SIZE + totalSize;
+                    int overallProcessed = BATCH_SIZE + processedCount;
+                    int progress = (int) ((overallProcessed * 100.0) / overallTotal);
+                    locationProgressCacheService.setProgress(date, progress);
                 }
             } catch (Exception e) {
                 logger.warn("更新进度失败: {}", e.getMessage());
@@ -618,11 +623,9 @@ public class LocationAddressConverter {
         try {
             if (!remainingList.isEmpty()) {
                 UserLocation firstLoc = remainingList.get(0);
-                if (firstLoc.getCreateTime() != null) {
-                    LocalDate date = firstLoc.getCreateTime().toLocalDate();
-                    locationProgressCacheService.setComplete(date);
-                    logger.info("位置地址解析全部完成: date={}", date);
-                }
+                LocalDate date = getDateFromLocation(firstLoc);
+                locationProgressCacheService.setComplete(date);
+                logger.info("位置地址解析全部完成: date={}", date);
             }
         } catch (Exception e) {
             logger.warn("标记完成失败: {}", e.getMessage());
@@ -670,46 +673,10 @@ public class LocationAddressConverter {
     }
 
     /**
-     * 等待直到可以发送请求（严格的速率控制）
+     * 等待 API 调用许可（委托给统一调度器的令牌桶，锁外等待不阻塞其他线程）。
      */
-    private synchronized void waitForRateLimit() {
-        long now = System.currentTimeMillis();
-        long timeSinceLastReset = now - lastResetTime;
-        
-        // 如果已经过去1秒，重置计数器
-        if (timeSinceLastReset >= 1000) {
-            requestCount.set(0);
-            lastResetTime = now;
-            logger.debug("重置请求计数器");
-        }
-        
-        // 如果已经达到每秒最大请求数，等待到下一秒
-        if (requestCount.get() >= MAX_REQUESTS_PER_SECOND) {
-            long waitTime = 1000 - timeSinceLastReset + 50; // 多等50ms确保安全
-            logger.warn("达到速率限制，等待 {} ms", waitTime);
-            try {
-                Thread.sleep(waitTime);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            // 重置计数器
-            requestCount.set(0);
-            lastResetTime = System.currentTimeMillis();
-        }
-        
-        // 确保每个请求之间有足够的间隔
-        long timeSinceLastRequest = now - lastResetTime;
-        if (requestCount.get() > 0 && timeSinceLastRequest < REQUEST_INTERVAL_MS * requestCount.get()) {
-            long waitTime = REQUEST_INTERVAL_MS * requestCount.get() - timeSinceLastRequest;
-            if (waitTime > 0) {
-                logger.debug("请求间隔控制，等待 {} ms", waitTime);
-                try {
-                    Thread.sleep(waitTime);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
+    private void waitForRateLimit() {
+        geocodeScheduler.acquire();
     }
 
     private void convertSingleLocation(UserLocation loc) {
@@ -796,15 +763,17 @@ public class LocationAddressConverter {
         cache.setUpdateTime(formatDate(LocalDateTime.now()));
         cache.setExpireTime(formatDate(LocalDateTime.now().plusDays(180)));
         
-        // 加入写入队列
-        boolean added = writeQueue.offer(cache);
-        if (!added) {
-            logger.warn("写入队列已满，丢弃缓存: lat={}, lng={}", latitude, longitude);
-        } else {
-            // 检查是否达到批量写入阈值
-            if (writeQueue.size() >= BATCH_WRITE_THRESHOLD) {
-                triggerBatchWrite();
-            }
+        // 加入写入队列（阻塞等待，避免丢弃数据）
+        try {
+            writeQueue.put(cache);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("写入被中断，丢弃缓存: lat={}, lng={}", latitude, longitude);
+            return;
+        }
+        // 检查是否达到批量写入阈值
+        if (writeQueue.size() >= BATCH_WRITE_THRESHOLD) {
+            triggerBatchWrite();
         }
     }
 
@@ -824,45 +793,87 @@ public class LocationAddressConverter {
             if (queueSize == 0) {
                 return;
             }
-            
+
             logger.info("开始批量写入缓存，队列大小: {}", queueSize);
-            
+
             List<LocationCache> batchList = new ArrayList<>();
             writeQueue.drainTo(batchList);
-            
+
             try {
-                // 按坐标分组，去重并保留最新的
-                Map<String, LocationCache> uniqueMap = new HashMap<>();
+                // 按坐标去重
+                Map<String, LocationCache> uniqueMap = new LinkedHashMap<>();
                 for (LocationCache cache : batchList) {
                     String key = cache.getLongitude() + "," + cache.getLatitude();
                     uniqueMap.put(key, cache);
                 }
-                
+
                 List<LocationCache> uniqueList = new ArrayList<>(uniqueMap.values());
-                logger.info("去重后批量写入 {} 条记录", uniqueList.size());
-                
-                // 批量写入
+                logger.info("去重后 {} 条记录待写入", uniqueList.size());
+
+                // 构建坐标列表用于批量查询
+                List<Map<String, Double>> coordList = new ArrayList<>();
                 for (LocationCache cache : uniqueList) {
-                    try {
-                        LocationCache existing = locationCacheMapper.findByCoordinates(
-                            cache.getLongitude(), cache.getLatitude());
-                        if (existing != null) {
+                    Map<String, Double> coord = new HashMap<>();
+                    coord.put("longitude", cache.getLongitude());
+                    coord.put("latitude", cache.getLatitude());
+                    coordList.add(coord);
+                }
+
+                // 1. 批量查询已存在的记录
+                Map<String, LocationCache> existingMap = new HashMap<>();
+                try {
+                    List<LocationCache> existingList = locationCacheMapper.findByCoordinatesBatch(coordList);
+                    for (LocationCache existing : existingList) {
+                        String key = existing.getLongitude() + "," + existing.getLatitude();
+                        existingMap.put(key, existing);
+                    }
+                } catch (Exception e) {
+                    logger.error("批量查询缓存失败: {}", e.getMessage());
+                }
+
+                // 2. 分组：新记录走批量INSERT，已有记录逐条UPDATE
+                List<LocationCache> newList = new ArrayList<>();
+                for (LocationCache cache : uniqueList) {
+                    String key = cache.getLongitude() + "," + cache.getLatitude();
+                    LocationCache existing = existingMap.get(key);
+                    if (existing != null) {
+                        // 已有记录：更新
+                        try {
                             existing.setAddress(cache.getAddress());
                             existing.setUpdateTime(cache.getUpdateTime());
                             existing.setExpireTime(cache.getExpireTime());
                             locationCacheMapper.updateById(existing);
-                        } else {
-                            locationCacheMapper.insert(cache);
+                        } catch (Exception e) {
+                            logger.error("更新缓存失败: key={}, {}", key, e.getMessage());
                         }
-                    } catch (Exception e) {
-                        logger.error("写入单条缓存失败: {}", e.getMessage());
+                    } else {
+                        // 新记录：收集到批量插入列表
+                        newList.add(cache);
                     }
                 }
-                
-                logger.info("批量写入完成，成功写入 {} 条记录", uniqueList.size());
+
+                // 3. 批量插入新记录
+                if (!newList.isEmpty()) {
+                    try {
+                        locationCacheMapper.insertBatch(newList);
+                        logger.info("批量插入 {} 条新缓存记录", newList.size());
+                    } catch (Exception e) {
+                        logger.error("批量插入缓存失败: {}", e.getMessage());
+                        // 插入失败时逐条重试
+                        for (LocationCache cache : newList) {
+                            try {
+                                locationCacheMapper.insert(cache);
+                            } catch (Exception ex) {
+                                logger.error("逐条插入缓存失败: {}", ex.getMessage());
+                            }
+                        }
+                    }
+                }
+
+                logger.info("批量写入完成，UPDATE={}, INSERT={}",
+                        uniqueList.size() - newList.size(), newList.size());
             } catch (Exception e) {
                 logger.error("批量写入缓存失败: {}", e.getMessage());
-                // 将失败的记录重新放回队列
                 for (LocationCache cache : batchList) {
                     writeQueue.offer(cache);
                 }
@@ -883,6 +894,25 @@ public class LocationAddressConverter {
         localCache.remove(coordKey);
         cacheTimestamps.remove(coordKey);
         return null;
+    }
+
+    /**
+     * 定期清理过期的本地缓存条目，防止内存泄漏。
+     * 由 writeScheduler 每 5 分钟调用一次。
+     */
+    private void cleanExpiredLocalCache() {
+        long now = System.currentTimeMillis();
+        int cleaned = 0;
+        for (Map.Entry<String, Long> entry : cacheTimestamps.entrySet()) {
+            if (now - entry.getValue() > LOCAL_CACHE_EXPIRE_MS) {
+                localCache.remove(entry.getKey());
+                cacheTimestamps.remove(entry.getKey());
+                cleaned++;
+            }
+        }
+        if (cleaned > 0) {
+            logger.debug("清理过期本地缓存: {} 条, 当前缓存数: {}", cleaned, localCache.size());
+        }
     }
 
     private void saveToCache(Double longitude, Double latitude, String address) {
@@ -909,6 +939,17 @@ public class LocationAddressConverter {
         BigDecimal bd = new BigDecimal(value);
         bd = bd.setScale(decimalPlaces, RoundingMode.HALF_UP);
         return bd.doubleValue();
+    }
+
+    /**
+     * 安全获取日期（createTime 为 null 时回退到当前日期，避免进度追踪静默失败）
+     */
+    private LocalDate getDateFromLocation(UserLocation loc) {
+        if (loc != null && loc.getCreateTime() != null) {
+            return loc.getCreateTime().toLocalDate();
+        }
+        logger.debug("createTime 为 null，使用当前日期作为回退");
+        return LocalDate.now();
     }
 
     /**
@@ -972,10 +1013,6 @@ public class LocationAddressConverter {
                 result.setStatus(status);
                 result.setMessage(root.path("message").asText());
                 result.setRequestId(root.path("request_id").asText());
-
-                // 请求成功后增加计数
-                int count = requestCount.incrementAndGet();
-                logger.debug("已发送第 {} 个请求", count);
 
                 if (status == 0) {
                     JsonNode resultNode = root.path("result");

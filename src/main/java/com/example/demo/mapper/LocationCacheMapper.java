@@ -37,4 +37,14 @@ public interface LocationCacheMapper {
      * @return 缓存列表
      */
     List<LocationCache> findValidByCoordinatesBatch(@Param("coordList") List<Map<String, Double>> coordList, @Param("currentTime") String currentTime);
+
+    /**
+     * 批量查询缓存（不校验过期时间，按经纬度精确匹配）
+     */
+    List<LocationCache> findByCoordinatesBatch(@Param("coordList") List<Map<String, Double>> coordList);
+
+    /**
+     * 批量插入缓存
+     */
+    int insertBatch(@Param("list") List<LocationCache> list);
 }
