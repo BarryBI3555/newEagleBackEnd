@@ -55,6 +55,7 @@ public class HotmapController {
         result.put("processing", cacheService.isProcessing(queryDate));
         result.put("progress", cacheService.getProgress(queryDate));
         result.put("complete", cacheService.isCacheComplete(queryDate));
+        result.putAll(cacheService.getStats(queryDate));
         
         // 返回当前缓存的数据量
         List<HeatData> cachedData = cacheService.getCachedHeatData(queryDate);

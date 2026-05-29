@@ -28,6 +28,8 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
     // 标记缓存是否完整
     private final Map<String, Boolean> completeFlags = new ConcurrentHashMap<>();
 
+    private final Map<String, Map<String, Integer>> statsMap = new ConcurrentHashMap<>();
+
     private String getKey(LocalDate date) {
         return date.toString();
     }
@@ -49,6 +51,7 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
         processingFlags.remove(getKey(date));
         progressMap.remove(getKey(date));
         completeFlags.remove(getKey(date));
+        statsMap.remove(getKey(date));
     }
 
     @Override
@@ -72,6 +75,27 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
     @Override
     public void setProgress(LocalDate date, int progress) {
         progressMap.put(getKey(date), Math.min(100, Math.max(0, progress)));
+    }
+
+    @Override
+    public void setStats(LocalDate date, int total, int processed, int success, int failed) {
+        Map<String, Integer> stats = new ConcurrentHashMap<>();
+        stats.put("total", total);
+        stats.put("processed", processed);
+        stats.put("success", success);
+        stats.put("failed", failed);
+        statsMap.put(getKey(date), stats);
+    }
+
+    @Override
+    public Map<String, Integer> getStats(LocalDate date) {
+        Map<String, Integer> stats = statsMap.get(getKey(date));
+        Map<String, Integer> result = new ConcurrentHashMap<>();
+        result.put("total", stats != null ? stats.getOrDefault("total", 0) : 0);
+        result.put("processed", stats != null ? stats.getOrDefault("processed", 0) : 0);
+        result.put("success", stats != null ? stats.getOrDefault("success", 0) : 0);
+        result.put("failed", stats != null ? stats.getOrDefault("failed", 0) : 0);
+        return result;
     }
 
     @Override

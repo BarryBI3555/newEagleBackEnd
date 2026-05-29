@@ -64,4 +64,32 @@
         SELECT COUNT(*) FROM prplchecktask WHERE checkdate = #{date}
     </select>
 
+    <select id="countMissingCoordinateTasksByDate" resultType="int">
+        SELECT COUNT(*)
+        FROM prplchecktask
+        WHERE checkdate = #{date}
+            AND checksite IS NOT NULL
+            AND TRIM(checksite) != ''
+            AND (
+                checklongitude IS NULL
+                OR checklatitude IS NULL
+                OR checklongitude = 0
+                OR checklatitude = 0
+            )
+    </select>
+
+    <select id="getMissingCoordinateTasksByDate" resultMap="PrplCheckTaskResultMap">
+        SELECT id, checklongitude, checklatitude, checkdate, checksite
+        FROM prplchecktask
+        WHERE checkdate = #{date}
+            AND checksite IS NOT NULL
+            AND TRIM(checksite) != ''
+            AND (
+                checklongitude IS NULL
+                OR checklatitude IS NULL
+                OR checklongitude = 0
+                OR checklatitude = 0
+            )
+    </select>
+
 </mapper>

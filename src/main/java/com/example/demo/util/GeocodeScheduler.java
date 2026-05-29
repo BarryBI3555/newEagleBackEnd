@@ -59,27 +59,24 @@ public class GeocodeScheduler {
      * 锁内仅计算令牌，sleep 在锁外，不阻塞其他线程进入。
      */
     public void acquire() {
-        long waitMs = 0;
-        synchronized (this) {
-            refillTokens();
-            if (availablePermits >= 1.0) {
-                availablePermits -= 1.0;
-                return;
+        while (true) {
+            long waitMs;
+            synchronized (this) {
+                refillTokens();
+                if (availablePermits >= 1.0) {
+                    availablePermits -= 1.0;
+                    return;
+                }
+                double deficitSeconds = (1.0 - availablePermits) / MAX_PERMITS_PER_SECOND;
+                waitMs = (long) (deficitSeconds * 1000) + 1;
             }
-            double deficitSeconds = (1.0 - availablePermits) / MAX_PERMITS_PER_SECOND;
-            waitMs = (long) (deficitSeconds * 1000) + 1;
-        }
-        if (waitMs > 0) {
+
             try {
                 Thread.sleep(waitMs);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
             }
-        }
-        synchronized (this) {
-            refillTokens();
-            availablePermits -= 1.0;
         }
     }
 
@@ -99,8 +96,12 @@ public class GeocodeScheduler {
      * @param key  任务标识（如 "hotmap:2026-05-28"、"location:2026-05-28"）
      * @param task 待执行的 Runnable
      */
-    public void submit(String key, Runnable task) {
-        cancel(key);
+    public synchronized void submit(String key, Runnable task) {
+        Future<?> existing = runningTasks.get(key);
+        if (existing != null && !existing.isDone()) {
+            logger.info("Geocode task is already running, reuse existing task. key={}", key);
+            return;
+        }
         Future<?> future = executor.submit(() -> {
             try {
                 task.run();

@@ -79,14 +79,15 @@ public class HotmapServiceImpl implements HotmapService {
         // 检查是否需要异步解析地址
         if (enableGeocode && !cacheService.isProcessing(date) && !cacheService.isCacheComplete(date)) {
             // 检查是否有需要解析的地址数据
-            int totalCount = prplCheckTaskMapper.countTasksByDate(dateStr);
-            logger.info("检查是否需要异步解析: 总数据量={}, 缓存数据量={}", totalCount, cachedData.size());
+            int missingCount = prplCheckTaskMapper.countMissingCoordinateTasksByDate(dateStr);
+            logger.info("检查是否需要异步解析: 缺失坐标数据量={}, 缓存数据量={}", missingCount, cachedData.size());
             
             // 如果数据库数据量大于缓存数据量，说明有地址需要解析
-            if (totalCount > cachedData.size()) {
+            if (missingCount > 0) {
                 logger.info("启动异步地址解析任务");
                 cacheService.setProcessing(date, true);
                 cacheService.setProgress(date, 0);
+                cacheService.setStats(date, missingCount, 0, 0, 0);
                 String taskKey = "hotmap:" + dateStr;
                 geocodeScheduler.submit(taskKey, () -> asyncGeocodeService.doGeocodeAddresses(date, dateStr));
             } else {

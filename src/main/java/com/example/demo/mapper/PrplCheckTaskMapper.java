@@ -24,4 +24,8 @@ public interface PrplCheckTaskMapper {
     
     // 统计指定日期的数据总量
     int countTasksByDate(String date);
+
+    int countMissingCoordinateTasksByDate(String date);
+
+    List<PrplCheckTask> getMissingCoordinateTasksByDate(String date);
 }

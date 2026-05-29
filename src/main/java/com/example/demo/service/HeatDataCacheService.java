@@ -4,6 +4,7 @@ import com.example.demo.entity.HeatData;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 热力图数据缓存服务
@@ -44,6 +45,16 @@ public interface HeatDataCacheService {
      * 设置解析进度
      */
     void setProgress(LocalDate date, int progress);
+
+    /**
+     * 璁剧疆瑙ｆ瀽缁熻
+     */
+    void setStats(LocalDate date, int total, int processed, int success, int failed);
+
+    /**
+     * 鑾峰彇瑙ｆ瀽缁熻
+     */
+    Map<String, Integer> getStats(LocalDate date);
 
     /**
      * 检查缓存是否完整（包含地址解析结果）

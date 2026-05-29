@@ -41,7 +41,7 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
         logger.info("开始异步地址解析任务: date={}", dateStr);
 
         try {
-            List<PrplCheckTask> tasks = prplCheckTaskMapper.getAllTasksByDate(dateStr);
+            List<PrplCheckTask> tasks = prplCheckTaskMapper.getMissingCoordinateTasksByDate(dateStr);
 
             if (tasks == null || tasks.isEmpty()) {
                 logger.info("没有需要解析的地址数据");
@@ -49,17 +49,7 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
                 return;
             }
 
-            List<PrplCheckTask> tasksToGeocode = new ArrayList<>();
-            for (PrplCheckTask task : tasks) {
-                Double lng = task.getChecklongitude();
-                Double lat = task.getChecklatitude();
-                String checksite = task.getChecksite();
-
-                if ((lng == null || lat == null || Double.isNaN(lng) || Double.isNaN(lat)
-                        || lng == 0 || lat == 0) && checksite != null && !checksite.trim().isEmpty()) {
-                    tasksToGeocode.add(task);
-                }
-            }
+            List<PrplCheckTask> tasksToGeocode = new ArrayList<>(tasks);
 
             logger.info("需要解析的地址数量: {}", tasksToGeocode.size());
 
@@ -72,6 +62,7 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
             int processed = 0;
             int successCount = 0;
             int failCount = 0;
+            cacheService.setStats(date, total, processed, successCount, failCount);
 
             List<HeatData> geocodeResults = new ArrayList<>();
 
@@ -82,6 +73,7 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
                     return;
                 }
                 try {
+                    boolean success = false;
                     GeocodeResult result = addressConverter.geocode(task.getChecksite());
                     if (result != null && result.getStatus() == 0 && result.getResult() != null
                             && result.getResult().getLocation() != null) {
@@ -98,8 +90,10 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
                             heatData.setCount(1);
                             geocodeResults.add(heatData);
                             successCount++;
+                            success = true;
                         }
-                    } else {
+                    }
+                    if (!success) {
                         failCount++;
                     }
                 } catch (Exception e) {
@@ -108,6 +102,7 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
                 }
 
                 processed++;
+                cacheService.setStats(date, total, processed, successCount, failCount);
 
                 if (processed % 10 == 0 || processed == total) {
                     int progress = (int) ((processed * 100.0) / total);
