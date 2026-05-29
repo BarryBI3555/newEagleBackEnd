@@ -43,6 +43,12 @@ tencent.map.key=${TENCENT_MAP_KEY:}
 tencent.map.js-key=${TENCENT_MAP_JS_KEY:}
 spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:sqlite:./db.sqlite3}
 app.heatmap.enable-geocode=${APP_HEATMAP_ENABLE_GEOCODE:true}
+app.heatmap.max-points=${APP_HEATMAP_MAX_POINTS:10000}
+app.heatmap.region.min-lng=${APP_HEATMAP_REGION_MIN_LNG:102.5}
+app.heatmap.region.max-lng=${APP_HEATMAP_REGION_MAX_LNG:104.9}
+app.heatmap.region.min-lat=${APP_HEATMAP_REGION_MIN_LAT:30.0}
+app.heatmap.region.max-lat=${APP_HEATMAP_REGION_MAX_LAT:31.5}
+app.geocode.permits-per-second=${APP_GEOCODE_PERMITS_PER_SECOND:3}
 ```
 
 如果没有配置 `SPRING_DATASOURCE_URL`，服务会使用当前目录下的 `db.sqlite3`。真实业务数据请显式指定数据库路径。

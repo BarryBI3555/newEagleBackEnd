@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.config.HeatmapProperties;
 import com.example.demo.entity.AcdCwTbCll;
 import com.example.demo.entity.HeatData;
 import com.example.demo.entity.StatsCardData;
@@ -24,15 +25,6 @@ import java.util.Map;
 public class HotmapServiceImpl implements HotmapService {
 
     private static final Logger logger = LoggerFactory.getLogger(HotmapServiceImpl.class);
-    
-    // 最大返回的坐标点数量
-    private static final int MAX_HEAT_POINTS = 10000;
-
-    // 成都区域经纬度边界
-    private static final double CD_MIN_LNG = 102.5;
-    private static final double CD_MAX_LNG = 104.9;
-    private static final double CD_MIN_LAT = 30.0;
-    private static final double CD_MAX_LAT = 31.5;
 
     @Autowired
     private PrplCheckTaskMapper prplCheckTaskMapper;
@@ -48,88 +40,80 @@ public class HotmapServiceImpl implements HotmapService {
 
     @Autowired
     private GeocodeScheduler geocodeScheduler;
-    
+
+    @Autowired
+    private HeatmapProperties heatmapProperties;
+
     @Value("${app.heatmap.enable-geocode:true}")
     private boolean enableGeocode;
 
     @Override
     public List<HeatData> getHeatData(LocalDate date) {
         String dateStr = date.toString();
-        logger.info("开始获取热力图数据: date={}", dateStr);
-        
-        // 先尝试从缓存获取数据
+        logger.info("Start loading heatmap data: date={}", dateStr);
+
         List<HeatData> cachedData = cacheService.getCachedHeatData(date);
-        
-        // 获取数据库聚合查询的数据
+
         List<Map<String, Object>> dbHeatData = prplCheckTaskMapper.getHeatDataByDate(dateStr);
         List<HeatData> dbResult = convertDbHeatData(dbHeatData);
-        
-        // 如果缓存为空，使用数据库数据初始化缓存
+
         if (cachedData.isEmpty()) {
             cacheService.cacheHeatData(date, dbResult);
             cachedData = new ArrayList<>(dbResult);
         } else {
-            // 合并数据库数据到缓存（确保缓存包含最新的数据库数据）
             cacheService.mergeHeatData(date, dbResult);
             cachedData = cacheService.getCachedHeatData(date);
         }
-        
-        logger.info("数据库查询到 {} 个坐标点，缓存中共有 {} 个坐标点", dbResult.size(), cachedData.size());
-        
-        // 检查是否需要异步解析地址
+
+        logger.info("Loaded {} heat points from database, {} heat points in memory cache",
+                dbResult.size(), cachedData.size());
+
         if (enableGeocode && !cacheService.isProcessing(date) && !cacheService.isCacheComplete(date)) {
-            // 检查是否有需要解析的地址数据
             int missingCount = prplCheckTaskMapper.countMissingCoordinateTasksByDate(dateStr);
-            logger.info("检查是否需要异步解析: 缺失坐标数据量={}, 缓存数据量={}", missingCount, cachedData.size());
-            
-            // 如果数据库数据量大于缓存数据量，说明有地址需要解析
+            logger.info("Checking async geocode requirement: missingCoordinates={}, cachedPoints={}",
+                    missingCount, cachedData.size());
+
             if (missingCount > 0) {
-                logger.info("启动异步地址解析任务");
+                logger.info("Submit async address geocode task: date={}", dateStr);
                 cacheService.setProcessing(date, true);
                 cacheService.setProgress(date, 0);
                 cacheService.setStats(date, missingCount, 0, 0, 0);
                 String taskKey = "hotmap:" + dateStr;
                 geocodeScheduler.submit(taskKey, () -> asyncGeocodeService.doGeocodeAddresses(date, dateStr));
             } else {
-                // 数据量匹配，标记为已完成
                 cacheService.setCacheComplete(date);
             }
         }
-        
-        // 返回当前缓存的数据（限制数量，并过滤非成都区域）
+
         List<HeatData> filteredData = new ArrayList<>();
         for (HeatData hd : cachedData) {
-            if (hd.getLng() != null && hd.getLat() != null
-                    && hd.getLng() >= CD_MIN_LNG && hd.getLng() <= CD_MAX_LNG
-                    && hd.getLat() >= CD_MIN_LAT && hd.getLat() <= CD_MAX_LAT) {
+            if (heatmapProperties.isInRegion(hd.getLng(), hd.getLat())) {
                 filteredData.add(hd);
             }
         }
 
-        if (filteredData.size() > MAX_HEAT_POINTS) {
-            logger.warn("热力图数据量超过最大限制 {}，已截断", MAX_HEAT_POINTS);
-            return filteredData.subList(0, MAX_HEAT_POINTS);
+        int maxPoints = heatmapProperties.getMaxPoints();
+        if (filteredData.size() > maxPoints) {
+            logger.warn("Heatmap point count exceeds maxPoints={}, truncating result", maxPoints);
+            return filteredData.subList(0, maxPoints);
         }
 
         return filteredData;
     }
-    
-    /**
-     * 转换数据库返回的热力数据
-     */
+
     private List<HeatData> convertDbHeatData(List<Map<String, Object>> dbHeatData) {
         List<HeatData> result = new ArrayList<>();
-        
+
         if (dbHeatData == null || dbHeatData.isEmpty()) {
             return result;
         }
-        
+
         for (Map<String, Object> row : dbHeatData) {
             try {
                 Double lng = row.get("lng") != null ? ((Number) row.get("lng")).doubleValue() : null;
                 Double lat = row.get("lat") != null ? ((Number) row.get("lat")).doubleValue() : null;
                 Integer countVal = row.get("count") != null ? ((Number) row.get("count")).intValue() : 1;
-                
+
                 if (lng != null && lat != null) {
                     HeatData heatData = new HeatData();
                     heatData.setLng(lng);
@@ -138,49 +122,46 @@ public class HotmapServiceImpl implements HotmapService {
                     result.add(heatData);
                 }
             } catch (Exception e) {
-                logger.warn("解析数据库返回的热力数据失败: {}", e.getMessage());
+                logger.warn("Failed to convert heatmap row: {}", e.getMessage());
             }
         }
-        
+
         return result;
     }
 
     @Override
-    public List<StatsCardData> getStatsCardsData(LocalDate date){
+    public List<StatsCardData> getStatsCardsData(LocalDate date) {
         List<StatsCardData> result = new ArrayList<>();
 
         try {
             AcdCwTbCll data = acdCwTbCllMapper.selectByDate(date);
 
             if (data != null) {
-                logger.info("获取统计数据成功: date={}", date);
-
-                result.add(new StatsCardData("新增立案", 
-                        data.getXzlDay() != null ? data.getXzlDay() : 0, 
+                logger.info("Loaded stats card data: date={}", date);
+                result.add(new StatsCardData("新增立案",
+                        data.getXzlDay() != null ? data.getXzlDay() : 0,
                         "当日新增立案量"));
-
-                result.add(new StatsCardData("已决案件", 
-                        data.getYjlDay() != null ? data.getYjlDay() : 0, 
+                result.add(new StatsCardData("已决案件",
+                        data.getYjlDay() != null ? data.getYjlDay() : 0,
                         "当日已决量"));
-
-                result.add(new StatsCardData("未决案件", 
-                        data.getWjl() != null ? data.getWjl() : 0, 
+                result.add(new StatsCardData("未决案件",
+                        data.getWjl() != null ? data.getWjl() : 0,
                         "截止统计日期未决量"));
             } else {
-                logger.warn("未找到统计数据: date={}", date);
-                
-                result.add(new StatsCardData("新增立案", 0, "当日新增立案量"));
-                result.add(new StatsCardData("已决案件", 0, "当日已决量"));
-                result.add(new StatsCardData("未决案件", 0, "截止统计日期未决量"));
+                logger.warn("Stats card data not found: date={}", date);
+                addEmptyStatsCards(result);
             }
         } catch (Exception e) {
-            logger.error("获取统计卡片数据失败: date={}, {}", date, e.getMessage());
-            
-            result.add(new StatsCardData("新增立案", 0, "当日新增立案量"));
-            result.add(new StatsCardData("已决案件", 0, "当日已决量"));
-            result.add(new StatsCardData("未决案件", 0, "截止统计日期未决量"));
+            logger.error("Failed to load stats card data: date={}, {}", date, e.getMessage());
+            addEmptyStatsCards(result);
         }
 
         return result;
+    }
+
+    private void addEmptyStatsCards(List<StatsCardData> result) {
+        result.add(new StatsCardData("新增立案", 0, "当日新增立案量"));
+        result.add(new StatsCardData("已决案件", 0, "当日已决量"));
+        result.add(new StatsCardData("未决案件", 0, "截止统计日期未决量"));
     }
 }

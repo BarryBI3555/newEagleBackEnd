@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.config.HeatmapProperties;
 import com.example.demo.entity.GeocodeResult;
 import com.example.demo.entity.HeatData;
 import com.example.demo.entity.LocationCache;
@@ -28,11 +29,6 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
     private static final Logger logger = LoggerFactory.getLogger(AsyncGeocodeServiceImpl.class);
     private static final DateTimeFormatter CACHE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private static final double CD_MIN_LNG = 102.5;
-    private static final double CD_MAX_LNG = 104.9;
-    private static final double CD_MIN_LAT = 30.0;
-    private static final double CD_MAX_LAT = 31.5;
-
     @Autowired
     private PrplCheckTaskMapper prplCheckTaskMapper;
 
@@ -44,6 +40,9 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
 
     @Autowired
     private HeatDataCacheService cacheService;
+
+    @Autowired
+    private HeatmapProperties heatmapProperties;
 
     @Override
     public void doGeocodeAddresses(LocalDate date, String dateStr) {
@@ -184,7 +183,7 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
     }
 
     private boolean appendHeatData(List<HeatData> heatDataList, Double lng, Double lat, int count) {
-        if (lng == null || lat == null || !isInChengdu(lng, lat)) {
+        if (!heatmapProperties.isInRegion(lng, lat)) {
             return false;
         }
 
@@ -194,11 +193,6 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
         heatData.setCount(count);
         heatDataList.add(heatData);
         return true;
-    }
-
-    private boolean isInChengdu(double lng, double lat) {
-        return lng >= CD_MIN_LNG && lng <= CD_MAX_LNG
-                && lat >= CD_MIN_LAT && lat <= CD_MAX_LAT;
     }
 
     private int calculateProgress(int processed, int total) {
