@@ -4,6 +4,12 @@ import com.example.demo.entity.CurGzlTableRy;
 import com.example.demo.entity.CurGzlTableBm;
 import com.example.demo.entity.CurGzlTableGroup;
 import com.example.demo.entity.CurGzlTableRs;
+import com.example.demo.entity.AcdZhouqiQs;
+import com.example.demo.entity.AcdZhouqiBm;
+import com.example.demo.entity.AcdZhpflKhq;
+import com.example.demo.entity.AcdPacllBm;
+import com.example.demo.entity.AcdPacllXz;
+import com.example.demo.entity.AcdPacllRy;
 import com.example.demo.entity.Result;
 import com.example.demo.service.ReportTableService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,6 +147,119 @@ public class ReportTableController {
 
         } catch (Exception e) {
             return Result.error("获取住院门诊统计失败：" + e.getMessage());
+        }
+    }
+
+    // ==================== 新增表接口 ====================
+
+    /** 周期-市公司 */
+    @GetMapping("/zhouqi_qs/list")
+    public Result<List<AcdZhouqiQs>> getZhouqiQsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                String maxDate = reportTableService.getMaxTjDate("acd_zhouqi_qs");
+                tjDate = maxDate;
+            }
+            List<AcdZhouqiQs> data = reportTableService.getZhouqiQsData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取周期-市公司失败：" + e.getMessage());
+        }
+    }
+
+    /** 周期-部门 */
+    @GetMapping("/zhouqi_bm/list")
+    public Result<List<AcdZhouqiBm>> getZhouqiBmList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comname
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                String maxDate = reportTableService.getMaxTjDate("acd_zhouqi_bm");
+                tjDate = maxDate;
+            }
+            List<AcdZhouqiBm> data = reportTableService.getZhouqiBmData(tjDate, comname);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取周期-部门失败：" + e.getMessage());
+        }
+    }
+
+    /** 综合赔付率-客户群 */
+    @GetMapping("/zhpfl_khq/list")
+    public Result<List<AcdZhpflKhq>> getZhpflKhqList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                String maxDate = reportTableService.getMaxTjDate("acd_zhpfl_khq");
+                tjDate = maxDate;
+            }
+            List<AcdZhpflKhq> data = reportTableService.getZhpflKhqData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取综合赔付率-客户群失败：" + e.getMessage());
+        }
+    }
+
+    /** 车险结案率-部门 */
+    @GetMapping("/pacll_bm/list")
+    public Result<List<AcdPacllBm>> getPacllBmList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comname
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                String maxDate = reportTableService.getMaxTjDate("acd_pacll_bm");
+                tjDate = maxDate;
+            }
+            List<AcdPacllBm> data = reportTableService.getPacllBmData(tjDate, comname);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取车险结案率-部门失败：" + e.getMessage());
+        }
+    }
+
+    /** 车险结案率-小组 */
+    @GetMapping("/pacll_xz/list")
+    public Result<List<AcdPacllXz>> getPacllXzList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String groups
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                String maxDate = reportTableService.getMaxTjDate("acd_pacll_xz");
+                tjDate = maxDate;
+            }
+            List<AcdPacllXz> data = reportTableService.getPacllXzData(tjDate, comname, groups);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取车险结案率-小组失败：" + e.getMessage());
+        }
+    }
+
+    /** 车险结案率-人员 */
+    @GetMapping("/pacll_ry/list")
+    public Result<List<AcdPacllRy>> getPacllRyList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String bm,
+            @RequestParam(required = false) String groups,
+            @RequestParam(required = false) String username
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                String maxDate = reportTableService.getMaxTjDate("acd_pacll_ry");
+                tjDate = maxDate;
+            }
+            List<AcdPacllRy> data = reportTableService.getPacllRyData(tjDate, bm, groups, username);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取车险结案率-人员失败：" + e.getMessage());
         }
     }
 }
