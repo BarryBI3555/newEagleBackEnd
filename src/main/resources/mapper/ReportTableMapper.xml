@@ -122,177 +122,186 @@
 
     <!-- ==================== 新增表：周期-市公司 ==================== -->
     <select id="getZhouqiQsData" resultType="com.example.demo.entity.AcdZhouqiQs">
-        SELECT a.id as id,
-        a.tjdate as tjDate,
-        a.comcode_sgs as comcodeSgs,
-        a.comname_sgs as comnameSgs,
-        a.chakan_zt as chakanZt,
-        a.cuiding_zt as cuidingZt,
-        a.dingsun_zt as dingsunZt,
-        a.zhifu_zt as zhifuZt,
-        a.zhouqi_zt as zhouqiZt,
-        a.zhouqi_wyn as zhouqiWyn,
-        a.zhouqi_wys as zhouqiWys,
-        max(a.tjdate) as maxTjTime
-        FROM acd_zhouqi_qs a
-        WHERE a.tjdate = #{tjDate}
+        select
+        tjdate,
+        tjdate as maxTjTime,
+        comcode_sgs,
+        comname_sgs,
+        chakan_zt,
+        cuiding_zt,
+        dingsun_zt,
+        zhifu_zt,
+        zhouqi_zt,
+        zhouqi_wyn,
+        zhouqi_wys
+        from acd_zhouqi_qs
+        where 1 = 1
+        and tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
-            AND a.comname_sgs like concat('%', #{comnameSgs}, '%')
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
         </if>
-        GROUP BY 1,2,3,4,5,6,7,8,9,10,11
-        ORDER BY comnameSgs desc
+        order by zhouqi_zt desc
     </select>
 
     <!-- ==================== 新增表：周期-部门 ==================== -->
     <select id="getZhouqiBmData" resultType="com.example.demo.entity.AcdZhouqiBm">
-        SELECT a.id as id,
-        a.tjdate as tjDate,
-        a.comcode as comcode,
-        a.comname as comname,
-        a.zhouqi_zt as zhouqiZt,
-        a.zhouqi_wyn as zhouqiWyn,
-        a.zhouqi_wys as zhouqiWys,
-        a.chakan_zt as chakanZt,
-        a.cuiding_zt as cuidingZt,
-        a.dingsun_zt as dingsunZt,
-        a.zhifu_zt as zhifuZt,
-        max(a.tjdate) as maxTjTime
-        FROM acd_zhouqi_bm a
-        WHERE a.tjdate = #{tjDate}
+        select
+        tjdate,
+        tjdate as maxTjTime,
+        comcode,
+        comname,
+        zhouqi_zt,
+        zhouqi_wyn,
+        zhouqi_wys,
+        chakan_zt,
+        cuiding_zt,
+        dingsun_zt,
+        zhifu_zt
+        from acd_zhouqi_bm
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and comcode like '510199%'
+        and comcode not in ('51019928','51019926','51019911','51019907','51019944')
         <if test="comname != null and comname != ''">
-            AND a.comname like concat('%', #{comname}, '%')
+            and comname like concat('%', #{comname}, '%')
         </if>
-        GROUP BY 1,2,3,4,5,6,7,8,9,10,11
-        ORDER BY comname desc
+        order by zhouqi_zt desc
     </select>
 
     <!-- ==================== 新增表：综合赔付率-客户群 ==================== -->
     <select id="getZhpflKhqData" resultType="com.example.demo.entity.AcdZhpflKhq">
-        SELECT a.id as id,
-        a.tjdate as tjDate,
-        a.comcode_sgs as comcodeSgs,
-        a.comname_sgs as comnameSgs,
-        a.khq as khq,
-        a.riskcode as riskcode,
-        a.jbf as jbf,
-        a.pfcb as pfcb,
-        a.fy as fy,
-        a.glfy as glfy,
-        a.cblr as cblr,
-        a.zhcbl as zhcbl,
-        a.zhfyl as zhfyl,
-        a.zhpfl as zhpfl,
-        a.jbf_qn as jbfQn,
-        a.pfcb_qn as pfcbQn,
-        a.fy_qn as fyQn,
-        a.glfy_qn as glfyQn,
-        a.cblr_qn as cblrQn,
-        a.zhcbl_qn as zhcblQn,
-        a.zhfyl_qn as zhfylQn,
-        a.zhpfl_qn as zhpflQn,
-        a.zhcbl_tb as zhcblTb,
-        a.zhfyl_tb as zhfylTb,
-        a.zhpfl_tb as zhpflTb,
-        max(a.tjdate) as maxTjTime
-        FROM acd_zhpfl_khq a
-        WHERE a.tjdate = #{tjDate}
+        select
+        tjdate,
+        tjdate as maxTjTime,
+        comcode_sgs,
+        comname_sgs,
+        khq,
+        riskcode,
+        jbf,
+        pfcb,
+        fy,
+        glfy,
+        cblr,
+        zhcbl,
+        zhfyl,
+        zhpfl,
+        jbf_qn,
+        pfcb_qn,
+        fy_qn,
+        glfy_qn,
+        cblr_qn,
+        zhcbl_qn,
+        zhfyl_qn,
+        zhpfl_qn,
+        zhcbl_tb,
+        zhfyl_tb,
+        zhpfl_tb
+        from acd_zhpfl_khq
+        where 1 = 1
+        and tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
-            AND a.comname_sgs like concat('%', #{comnameSgs}, '%')
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
         </if>
-        GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
-        ORDER BY comnameSgs desc, khq asc
+        order by zhpfl desc
     </select>
 
     <!-- ==================== 新增表：车险结案率-部门 ==================== -->
     <select id="getPacllBmData" resultType="com.example.demo.entity.AcdPacllBm">
-        SELECT a.idd as idd,
-        a.tjdate as tjDate,
-        a.comcode as comcode,
-        a.comname as comname,
-        a.xzl as xzl,
-        a.yjl as yjl,
-        a.wjl as wjl,
-        a.wjl_qn as wjlQn,
-        a.pacll as pacll,
-        a.wjxs as wjxs,
-        a.rjwj as rjwj,
-        a.wjl_fr as wjlFr,
-        a.wjxs_fr as wjxsFr,
-        a.rjwj_fr as rjwjFr,
-        a.wjxs_rs as wjxsRs,
-        a.rswj as rswj,
-        a.lajal as lajal,
-        a.rs_zb as rsZb,
-        max(a.tjdate) as maxTjTime
-        FROM acd_pacll_bm a
-        WHERE a.tjdate = #{tjDate}
+        select
+        tjdate,
+        tjdate as maxTjTime,
+        idd,
+        comcode,
+        comname,
+        xzl,
+        yjl,
+        wjl,
+        wjl_qn,
+        pacll,
+        wjxs,
+        rjwj,
+        wjl_fr,
+        wjxs_fr,
+        rjwj_fr,
+        wjxs_rs,
+        wjl - wjl_fr as rswj,
+        round(cast(yjl as real) / cast(xzl as real), 4) as lajal,
+        cast(wjl - wjl_fr as real) / cast(wjl as real) as rs_zb
+        from acd_pacll_bm
+        where tjdate = #{tjDate}
+        and comname is not null
+        and comcode not in ('51019944','51019907')
+        and comname &lt;&gt; '键科'
         <if test="comname != null and comname != ''">
-            AND a.comname like concat('%', #{comname}, '%')
+            and comname like concat('%', #{comname}, '%')
         </if>
-        GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
-        ORDER BY comname desc
+        order by idd
     </select>
 
     <!-- ==================== 新增表：车险结案率-小组 ==================== -->
     <select id="getPacllXzData" resultType="com.example.demo.entity.AcdPacllXz">
-        SELECT a.id as id,
-        a.comname as comname,
-        a.tjdate as tjDate,
-        a.groups as groups,
-        a.groupscode as groupscode,
-        a.xzl as xzl,
-        a.yjl as yjl,
-        a.wjl as wjl,
-        a.wjl_fr as wjlFr,
-        a.wjl_rs as wjlRs,
-        a.pacll as pacll,
-        a.lajal as lajal,
-        a.rs_pp as rsPp,
-        max(a.tjdate) as maxTjTime
-        FROM acd_pacll_xz a
-        WHERE a.tjdate = #{tjDate}
+        select
+        tjdate,
+        tjdate as maxTjTime,
+        comname,
+        groups,
+        groupscode,
+        xzl,
+        yjl,
+        wjl,
+        wjl_fr,
+        wjl_rs,
+        pacll,
+        round(cast(yjl as real) / cast(xzl as real), 4) as lajal,
+        round(cast(wjl_rs as real) / cast(wjl as real), 4) as rs_pp
+        from acd_pacll_xz
+        where tjdate = #{tjDate}
         <if test="comname != null and comname != ''">
-            AND a.comname like concat('%', #{comname}, '%')
+            and comname like concat('%', #{comname}, '%')
         </if>
         <if test="groups != null and groups != ''">
-            AND a.groups like concat('%', #{groups}, '%')
+            and groups like concat('%', #{groups}, '%')
         </if>
-        GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13
-        ORDER BY comname desc, groupscode asc
+        order by groupscode asc
     </select>
 
     <!-- ==================== 新增表：车险结案率-人员 ==================== -->
     <select id="getPacllRyData" resultType="com.example.demo.entity.AcdPacllRy">
-        SELECT a.id as id,
-        a.idd as idd,
-        a.tjdate as tjDate,
-        a.bm as bm,
-        a.username as username,
-        a.usercode as usercode,
-        a.xzajl as xzajl,
-        a.yjajl as yjajl,
-        a.wjajl as wjajl,
-        a.pacll as pacll,
-        a.wjclxs as wjclxs,
-        a.bsrswjcl as bsrswjcl,
-        a.bsrswjclxs as bsrswjclxs,
-        a.grid as grid,
-        a.groups as groups,
-        a.lajal as lajal,
-        max(a.tjdate) as maxTjTime
-        FROM acd_pacll_ry a
-        WHERE a.tjdate = #{tjDate}
+        select
+        tjdate,
+        tjdate as maxTjTime,
+        idd,
+        bm,
+        username,
+        usercode,
+        xzajl,
+        yjajl,
+        wjajl,
+        pacll,
+        wjclxs,
+        bsrswjcl,
+        bsrswjclxs,
+        grid,
+        groups,
+        round(cast(yjajl as real) / cast(xzajl as real), 4) as lajal
+        from acd_pacll_ry
+        where tjdate = #{tjDate}
+        and bm not like '%总经理%'
+        and bm not like '%经理%'
+        and bm not like '%科技%'
+        and bm not like '%重客%'
+        and groups is not null
+        and usercode not in ('25332446')
         <if test="bm != null and bm != ''">
-            AND a.bm like concat('%', #{bm}, '%')
+            and bm like concat('%', #{bm}, '%')
         </if>
         <if test="groups != null and groups != ''">
-            AND a.groups like concat('%', #{groups}, '%')
+            and groups like concat('%', #{groups}, '%')
         </if>
         <if test="username != null and username != ''">
-            AND a.username like concat('%', #{username}, '%')
+            and username like concat('%', #{username}, '%')
         </if>
-        GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
-        ORDER BY bm desc, username asc
+        order by idd, groups
     </select>
 
 </mapper>
