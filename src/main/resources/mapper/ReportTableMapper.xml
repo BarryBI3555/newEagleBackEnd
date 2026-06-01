@@ -245,6 +245,7 @@
         when a.comname ='中心整体' then 10
         else 99 end idd,
         a.*,
+        a.tjdate as maxTjTime,
         a.wjl-a.wjl_fr as rswj,
         round(a.yjl/a.xzl,4) lajal,
         (a.wjl-a.wjl_fr)/a.wjl as rs_zb
@@ -317,7 +318,9 @@
         when a.bm ='电梯' then 9
         when a.bm ='中心整体' then 10
         else 99 end idd,
-        a.*,round(a.yjajl/a.xzajl,4) lajal
+        a.*,
+        a.tjdate as maxTjTime,
+        round(a.yjajl/a.xzajl,4) lajal
         from acd_pacll_ry a
         where a.tjdate= #{tjDate}
         and a.bm not like '%人伤%'
