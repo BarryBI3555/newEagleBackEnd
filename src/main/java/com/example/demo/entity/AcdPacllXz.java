@@ -29,7 +29,7 @@ public class AcdPacllXz {
 
     private Integer wjlRs;          // 未结量(人数)
 
-    private Double pacll;           // 结案率
+    private String pacll;           // 结案率 —— 实际库中为 TEXT 类型（如 '94.66%'），使用 String 避免类型转换错误
 
     private Double lajal;           // 立案案均率
 
