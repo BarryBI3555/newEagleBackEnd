@@ -25,7 +25,7 @@ public class AcdPacllBm {
 
     private Integer wjlQn;          // 未结量(去年)
 
-    private Double pacll;           // 结案率(%)
+    private String pacll;           // 结案率(%) —— 实际库中为 TEXT 类型（如 '94.66%'），使用 String 避免类型转换错误
 
     private Double wjxs;            // 未决系数
 

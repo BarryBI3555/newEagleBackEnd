@@ -283,7 +283,7 @@ public class ReportTableController {
     ) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = LocalDate.now().minusDays(1).format(DATE_FMT);
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_zgs");
             }
             List<AcdPflsgnZgs> data = reportTableService.getPflsgnZgsData(tjDate, comnameSgs);
             return Result.success(data);
@@ -300,7 +300,7 @@ public class ReportTableController {
     ) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = LocalDate.now().minusDays(1).format(DATE_FMT);
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_khq");
             }
             List<AcdPflsgnKhq> data = reportTableService.getPflsgnKhqData(tjDate, comnameSgs);
             return Result.success(data);
@@ -317,7 +317,7 @@ public class ReportTableController {
     ) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = LocalDate.now().minusDays(1).format(DATE_FMT);
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_xny");
             }
             List<AcdPflsgnXny> data = reportTableService.getPflsgnXnyData(tjDate, comnameSgs);
             return Result.success(data);
@@ -336,7 +336,7 @@ public class ReportTableController {
     ) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = LocalDate.now().minusDays(1).format(DATE_FMT);
+                tjDate = reportTableService.getMaxTjDate("acd_anjun_cx_zgs");
             }
             List<AcdAnjunCxZgs> data = reportTableService.getAnjunCxZgsData(tjDate, comnameSgs);
             return Result.success(data);
@@ -352,7 +352,7 @@ public class ReportTableController {
     ) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = LocalDate.now().minusDays(1).format(DATE_FMT);
+                tjDate = reportTableService.getMaxTjDate("acd_anjun_cx_khq");
             }
             List<AcdAnjunCxKhq> data = reportTableService.getAnjunCxKhqData(tjDate, comnameSgs);
             return Result.success(data);
@@ -368,7 +368,7 @@ public class ReportTableController {
     ) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = LocalDate.now().minusDays(1).format(DATE_FMT);
+                tjDate = reportTableService.getMaxTjDate("acd_anjun_cx_xny");
             }
             List<AcdAnjunCxXny> data = reportTableService.getAnjunCxXnyData(tjDate, comnameSgs);
             return Result.success(data);
