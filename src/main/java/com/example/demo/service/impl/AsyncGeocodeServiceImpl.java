@@ -98,6 +98,9 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
                             heatData.setCount(1);
                             geocodeResults.add(heatData);
                             successCount++;
+                            // 注：acd_location_address_cache 的写入由 LocationAddressConverter.geocode()
+                            //     内部 saveAddressToCache() 自动完成（4 级链路第 3 级 → 第 4 级的回写）。
+                            //     后续查询 (geocode/findValidByAddress*) 也会优先命中这张表。
                         }
                     } else {
                         failCount++;

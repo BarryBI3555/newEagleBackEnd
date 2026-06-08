@@ -16,6 +16,13 @@ public interface HeatDataCacheService {
     List<HeatData> getCachedHeatData(LocalDate date);
 
     /**
+     * 仅获取缓存中的数据条数（O(1)，不复制列表）。用于 /hotmap/progress 轮询等只关心 size 的场景。
+     * @param date 日期
+     * @return 缓存中该日期的坐标点数；无缓存返回 0
+     */
+    int getCachedCount(LocalDate date);
+
+    /**
      * 缓存热力图数据
      */
     void cacheHeatData(LocalDate date, List<HeatData> data);

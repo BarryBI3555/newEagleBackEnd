@@ -56,48 +56,64 @@ public class HotmapServiceImpl implements HotmapService {
     public List<HeatData> getHeatData(LocalDate date) {
         String dateStr = date.toString();
         logger.info("开始获取热力图数据: date={}", dateStr);
-        
-        // 先尝试从缓存获取数据
+
+        // ============ 快速路径：缓存已 complete，跳过所有 DB 查询 ============
+        // 修复前：每次都查 DB（getHeatDataByDate + countTasksByDate），导致"完成后再查仍慢"
+        // 修复后：complete 状态下直接返回内存缓存
+        if (cacheService.isCacheComplete(date)) {
+            List<HeatData> cachedData = cacheService.getCachedHeatData(date);
+            logger.info("命中已 complete 缓存: date={}, 数据量={}（跳过 DB）", dateStr, cachedData.size());
+            return filterAndLimit(cachedData);
+        }
+
+        // ============ 慢速路径：缓存未 complete，需要查 DB 并可能启动异步解析 ============
+
+        // 读缓存（可能是空 / 不完整 / 正在解析中）
         List<HeatData> cachedData = cacheService.getCachedHeatData(date);
-        
-        // 获取数据库聚合查询的数据
+
+        // 查 DB 拿到当天的聚合坐标
         List<Map<String, Object>> dbHeatData = prplCheckTaskMapper.getHeatDataByDate(dateStr);
         List<HeatData> dbResult = convertDbHeatData(dbHeatData);
-        
-        // 如果缓存为空，使用数据库数据初始化缓存
+
         if (cachedData.isEmpty()) {
+            // 首次访问：直接以 DB 结果初始化缓存
             cacheService.cacheHeatData(date, dbResult);
             cachedData = new ArrayList<>(dbResult);
         } else {
-            // 合并数据库数据到缓存（确保缓存包含最新的数据库数据）
+            // 后续访问但还没 complete：把 DB 新数据合并进缓存（DB 是权威源）
             cacheService.mergeHeatData(date, dbResult);
             cachedData = cacheService.getCachedHeatData(date);
         }
-        
+
         logger.info("数据库查询到 {} 个坐标点，缓存中共有 {} 个坐标点", dbResult.size(), cachedData.size());
-        
-        // 检查是否需要异步解析地址
+
+        // 检查是否需要异步解析地址（只有未在解析且未 complete 才进入）
         if (enableGeocode && !cacheService.isProcessing(date) && !cacheService.isCacheComplete(date)) {
-            // 检查是否有需要解析的地址数据
             int totalCount = prplCheckTaskMapper.countTasksByDate(dateStr);
             logger.info("检查是否需要异步解析: 总数据量={}, 缓存数据量={}", totalCount, cachedData.size());
-            
-            // 如果数据库数据量大于缓存数据量，说明有地址需要解析
+
             if (totalCount > cachedData.size()) {
+                // DB 数据量比缓存多 → 有新地址待解析
                 logger.info("启动异步地址解析任务");
                 cacheService.setProcessing(date, true);
                 cacheService.setProgress(date, 0);
                 String taskKey = "hotmap:" + dateStr;
                 geocodeScheduler.submit(taskKey, () -> asyncGeocodeService.doGeocodeAddresses(date, dateStr));
             } else {
-                // 数据量匹配，标记为已完成
+                // 数据量一致，无需异步解析
                 cacheService.setCacheComplete(date);
             }
         }
-        
-        // 返回当前缓存的数据（限制数量，并过滤非成都区域）
+
+        return filterAndLimit(cachedData);
+    }
+
+    /**
+     * 过滤成都区域外的坐标，并按 MAX_HEAT_POINTS 截断
+     */
+    private List<HeatData> filterAndLimit(List<HeatData> source) {
         List<HeatData> filteredData = new ArrayList<>();
-        for (HeatData hd : cachedData) {
+        for (HeatData hd : source) {
             if (hd.getLng() != null && hd.getLat() != null
                     && hd.getLng() >= CD_MIN_LNG && hd.getLng() <= CD_MAX_LNG
                     && hd.getLat() >= CD_MIN_LAT && hd.getLat() <= CD_MAX_LAT) {

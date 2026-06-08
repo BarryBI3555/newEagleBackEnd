@@ -18,10 +18,10 @@ public interface PrplCheckTaskMapper {
     int deleteById(Long id);
 
     List<PrplCheckTask> getAllTasksByDate(String date);
-    
+
     // 直接在数据库层面聚合统计坐标点（保留3位小数）
     List<Map<String, Object>> getHeatDataByDate(String date);
-    
+
     // 统计指定日期的数据总量
     int countTasksByDate(String date);
 }
