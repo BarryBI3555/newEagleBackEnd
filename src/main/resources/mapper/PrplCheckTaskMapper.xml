@@ -23,7 +23,7 @@
 
     <update id="updateById" parameterType="com.example.demo.entity.PrplCheckTask">
         UPDATE prplchecktask
-        SET 
+        SET
             checklongitude = #{checklongitude},
             checklatitude = #{checklatitude},
             checkdate = #{checkdate},

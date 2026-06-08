@@ -25,6 +25,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * 经纬度 ↔ 中文地址 转换工具（异步 + 多级缓存）
+ *
+ * <h3>四级查询链路</h3>
+ * <ol>
+ *   <li><b>原表自带经纬度</b> — 调用方传入的 {@link UserLocation} 列表已含经纬度，无需查询</li>
+ *   <li><b>内存缓存</b> — 本类内部的 ConcurrentHashMap，5 分钟 TTL（也提供独立的 {@link InMemoryLocationCache} 组件供其他代码复用）</li>
+ *   <li><b>地址映射表（数据库）</b> — {@code location_cache} 表，由 {@code LocationCacheMapper} 查询</li>
+ *   <li><b>腾讯地图 API</b> — {@code tencent.map.api-domain}/ws/geocoder/v1/，调用结果回写至 ② 和 ③</li>
+ * </ol>
+ *
+ * <h3>关键策略</h3>
+ * <ul>
+ *   <li>批量查询：先去重再批量查 DB，避免 N+1</li>
+ *   <li>异步写入：DB 写入走 {@code writeQueue} + 定时任务，每 10 秒批量 flush</li>
+ *   <li>配额保护：{@link GeocodeScheduler} 令牌桶限流 (3 QPS)</li>
+ *   <li>指数退避：API 失败按 2^n 秒重试，最多 3 次</li>
+ * </ul>
+ */
 @Component
 public class LocationAddressConverter {
 
