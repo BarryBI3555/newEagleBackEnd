@@ -181,8 +181,8 @@ public class LocationAddressConverter {
         for (UserLocation loc : locationList) {
             if (!isValidForConversion(loc)) continue;
 
-            double lng = formatDouble(loc.getLongitude(), 3);
-            double lat = formatDouble(loc.getLatitude(), 3);
+            double lng = formatDouble(loc.getLongitude(), 5);
+            double lat = formatDouble(loc.getLatitude(), 5);
 
             // 收集需要查询的坐标（O(1)去重）
             String dedupKey = lng + "," + lat;
@@ -240,7 +240,7 @@ public class LocationAddressConverter {
         for (UserLocation loc : locationList) {
             if (loc.getAddress() != null) continue;  // 已有地址（无效坐标等）
             if (!isValidForConversion(loc)) continue;
-            String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+            String coordKey = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
             String cachedAddress = cacheResultMap.get(coordKey);
             if (cachedAddress != null) {
                 loc.setAddress(cachedAddress);
@@ -257,7 +257,7 @@ public class LocationAddressConverter {
             Map<String, UserLocation> coordToLocation = new HashMap<>();
 
             for (UserLocation loc : needConvertList) {
-                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                String coordKey = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
                 if (!processedCoords.contains(coordKey)) {
                     processedCoords.add(coordKey);
                     coordToLocation.put(coordKey, loc);
@@ -331,14 +331,14 @@ public class LocationAddressConverter {
                 if (addr != null && !addr.isEmpty()
                     && !addr.equals("解析异常") && !addr.equals("连接异常")
                     && !addr.equals("API配额超限") && !addr.equals("请求被中断")) {
-                    String key = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                    String key = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
                     coordToResolvedAddress.put(key, addr);
                 }
             }
             // 将解析结果回填到所有同坐标的位置（遍历完整列表，而非仅去重后的列表）
             for (UserLocation loc : locationList) {
                 if (loc.getAddress() != null && !loc.getAddress().isEmpty()) continue;
-                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                String coordKey = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
                 String addr = coordToResolvedAddress.get(coordKey);
                 if (addr != null) loc.setAddress(addr);
             }
@@ -368,8 +368,8 @@ public class LocationAddressConverter {
         for (UserLocation loc : locationList) {
             if (!isValidForConversion(loc)) continue;
 
-            double lng = formatDouble(loc.getLongitude(), 3);
-            double lat = formatDouble(loc.getLatitude(), 3);
+            double lng = formatDouble(loc.getLongitude(), 5);
+            double lat = formatDouble(loc.getLatitude(), 5);
 
             // 收集需要查询的坐标（O(1)去重）
             if (addedCoords.add(lng + "," + lat)) {
@@ -426,7 +426,7 @@ public class LocationAddressConverter {
         for (UserLocation loc : locationList) {
             if (loc.getAddress() != null) continue;  // 已有地址（无效坐标等）
             if (!isValidForConversion(loc)) continue;
-            String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+            String coordKey = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
             String cachedAddress = cacheResultMap.get(coordKey);
             if (cachedAddress != null) {
                 loc.setAddress(cachedAddress);
@@ -447,7 +447,7 @@ public class LocationAddressConverter {
         Map<String, UserLocation> coordToLocation = new HashMap<>();
 
         for (UserLocation loc : needConvertList) {
-            String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+            String coordKey = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
             if (!processedCoords.contains(coordKey)) {
                 processedCoords.add(coordKey);
                 coordToLocation.put(coordKey, loc);
@@ -494,14 +494,14 @@ public class LocationAddressConverter {
                 if (addr != null && !addr.isEmpty()
                     && !addr.equals("解析异常") && !addr.equals("连接异常")
                     && !addr.equals("API配额超限") && !addr.equals("请求被中断")) {
-                    String key = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                    String key = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
                     coordToResolvedAddress.put(key, addr);
                 }
             }
             // 将解析结果回填到所有同坐标的位置（遍历完整列表，而非仅去重后的列表）
             for (UserLocation loc : locationList) {
                 if (loc.getAddress() != null && !loc.getAddress().isEmpty()) continue;
-                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                String coordKey = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
                 String addr = coordToResolvedAddress.get(coordKey);
                 if (addr != null) loc.setAddress(addr);
             }
@@ -515,9 +515,9 @@ public class LocationAddressConverter {
             Map<String, UserLocation> remainingCoordMap = new HashMap<>();
             
             for (UserLocation loc : needConvertList) {
-                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                String coordKey = formatDouble(loc.getLongitude(), 5) + "," + formatDouble(loc.getLatitude(), 5);
                 if (remainingList.stream().anyMatch(r -> 
-                    (formatDouble(r.getLongitude(), 3) + "," + formatDouble(r.getLatitude(), 3)).equals(coordKey))) {
+                    (formatDouble(r.getLongitude(), 5) + "," + formatDouble(r.getLatitude(), 5)).equals(coordKey))) {
                     remainingCoordMap.put(coordKey, loc);
                 }
             }
@@ -712,8 +712,8 @@ public class LocationAddressConverter {
         
         while (retryCount < maxRetries) {
             try {
-                Double lng = formatDouble(loc.getLongitude(), 3);
-                Double lat = formatDouble(loc.getLatitude(), 3);
+                Double lng = formatDouble(loc.getLongitude(), 5);
+                Double lat = formatDouble(loc.getLatitude(), 5);
 
                 String url = tencentMapDomain + "/ws/geocoder/v1/"
                         + "?location=" + lat + "," + lng
@@ -1052,8 +1052,8 @@ public class LocationAddressConverter {
                     // 解析坐标
                     JsonNode locationNode = resultNode.path("location");
                     GeocodeResult.Location location = new GeocodeResult.Location();
-                    location.setLat(formatDouble(locationNode.path("lat").asDouble(), 3));
-                    location.setLng(formatDouble(locationNode.path("lng").asDouble(), 3));
+                    location.setLat(formatDouble(locationNode.path("lat").asDouble(), 5));
+                    location.setLng(formatDouble(locationNode.path("lng").asDouble(), 5));
                     resultData.setLocation(location);
 
                     // 解析地址部件

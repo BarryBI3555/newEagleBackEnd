@@ -152,8 +152,8 @@ public class HotmapServiceImpl implements HotmapService {
                 if (lng == null || lat == null) {
                     continue;
                 }
-                double rlng = roundTo(lng, 3);
-                double rlat = roundTo(lat, 3);
+                double rlng = roundTo(lng, 5);
+                double rlat = roundTo(lat, 5);
                 String key = rlng + "," + rlat;
                 HeatData hd = groupMap.get(key);
                 if (hd == null) {
