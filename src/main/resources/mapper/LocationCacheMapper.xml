@@ -43,6 +43,7 @@
         SELECT id, longitude, latitude, address, create_time, update_time, expire_time
         FROM acd_location_address_cache
         WHERE longitude = #{longitude} AND latitude = #{latitude}
+        LIMIT 1
     </select>
 
     <select id="findValidByCoordinates" resultMap="LocationCacheResultMap">
@@ -57,6 +58,7 @@
         SELECT id, longitude, latitude, address, create_time, update_time, expire_time
         FROM acd_location_address_cache
         WHERE address = #{address}
+        LIMIT 1
     </select>
 
     <select id="findValidByAddress" resultMap="LocationCacheResultMap">
@@ -64,12 +66,14 @@
         FROM acd_location_address_cache
         WHERE address = #{address}
           AND expire_time >= #{currentTime}
+        LIMIT 1
     </select>
 
     <select id="findByAddressLike" resultMap="LocationCacheResultMap">
         SELECT id, longitude, latitude, address, create_time, update_time, expire_time
         FROM acd_location_address_cache
         WHERE address LIKE #{addressPattern}
+        LIMIT 1
     </select>
 
     <select id="findValidByAddressLike" resultMap="LocationCacheResultMap">
@@ -77,6 +81,7 @@
         FROM acd_location_address_cache
         WHERE address LIKE #{addressPattern}
           AND expire_time >= #{currentTime}
+        LIMIT 1
     </select>
 
     <select id="findValidByCoordinatesBatch" resultMap="LocationCacheResultMap">
