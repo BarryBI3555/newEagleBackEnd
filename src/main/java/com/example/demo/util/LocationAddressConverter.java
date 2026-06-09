@@ -150,6 +150,24 @@ public class LocationAddressConverter {
     // 每批次处理的数量（默认每批处理20个坐标）
     private static final int BATCH_SIZE = 20;
 
+    /**
+     * 校验坐标是否有效（范围检查 + 非空检查）。
+     * 无效坐标会自动设置错误地址，调用方无需额外处理。
+     */
+    private boolean isValidForConversion(UserLocation loc) {
+        if (loc.getLongitude() == null || loc.getLatitude() == null ||
+            Double.isNaN(loc.getLongitude()) || Double.isNaN(loc.getLatitude())) {
+            loc.setAddress("坐标无效");
+            return false;
+        }
+        if (loc.getLongitude() < 73 || loc.getLongitude() > 135 ||
+            loc.getLatitude() < 3 || loc.getLatitude() > 53) {
+            loc.setAddress("坐标范围无效");
+            return false;
+        }
+        return true;
+    }
+
     public List<UserLocation> convertBatch(List<UserLocation> locationList) {
         if (locationList == null || locationList.isEmpty()) return locationList;
 
@@ -158,30 +176,13 @@ public class LocationAddressConverter {
 
         // 收集所有需要查询缓存的坐标（用于批量查询）
         List<Map<String, Double>> coordList = new ArrayList<>();
-        Map<String, UserLocation> coordToLocationMap = new HashMap<>();
         Set<String> addedCoords = new HashSet<>();
 
         for (UserLocation loc : locationList) {
-
-            if (loc.getLongitude() == null || loc.getLatitude() == null ||
-                Double.isNaN(loc.getLongitude()) || Double.isNaN(loc.getLatitude())) {
-                loc.setAddress("坐标无效");
-                continue;
-            }
-
-            // 验证坐标范围（中国地区大致范围）
-            if (loc.getLongitude() < 73 || loc.getLongitude() > 135 ||
-                loc.getLatitude() < 3 || loc.getLatitude() > 53) {
-                loc.setAddress("坐标范围无效");
-                continue;
-            }
+            if (!isValidForConversion(loc)) continue;
 
             double lng = formatDouble(loc.getLongitude(), 3);
             double lat = formatDouble(loc.getLatitude(), 3);
-            String coordKey = lng + "," + lat;
-
-            // 记录坐标到位置的映射
-            coordToLocationMap.put(coordKey, loc);
 
             // 收集需要查询的坐标（O(1)去重）
             String dedupKey = lng + "," + lat;
@@ -234,15 +235,17 @@ public class LocationAddressConverter {
             }
         }
 
-        // 根据缓存结果设置地址
-        for (Map.Entry<String, UserLocation> entry : coordToLocationMap.entrySet()) {
-            String coordKey = entry.getKey();
-            UserLocation loc = entry.getValue();
+        // 根据缓存结果设置地址（遍历完整列表，确保同坐标的所有人员都能获取到缓存地址）
+        Set<String> needConvertCoords = new HashSet<>();
+        for (UserLocation loc : locationList) {
+            if (loc.getAddress() != null) continue;  // 已有地址（无效坐标等）
+            if (!isValidForConversion(loc)) continue;
+            String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
             String cachedAddress = cacheResultMap.get(coordKey);
             if (cachedAddress != null) {
                 loc.setAddress(cachedAddress);
-            } else {
-                needConvertList.add(loc);
+            } else if (needConvertCoords.add(coordKey)) {
+                needConvertList.add(loc);  // 每个坐标仅添加一个代表用于后续API调用
             }
         }
 
@@ -321,13 +324,23 @@ public class LocationAddressConverter {
                 logger.info("第 {}/{} 批次处理完成", batchIndex + 1, batchCount);
             }
 
-            // 将解析结果回填到原列表中相同坐标的位置
-            for (UserLocation loc : needConvertList) {
-                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
-                UserLocation processedLoc = coordToLocation.get(coordKey);
-                if (processedLoc != null) {
-                    loc.setAddress(processedLoc.getAddress());
+            // 构建坐标→解析地址映射
+            Map<String, String> coordToResolvedAddress = new HashMap<>();
+            for (UserLocation loc : uniqueList) {
+                String addr = loc.getAddress();
+                if (addr != null && !addr.isEmpty()
+                    && !addr.equals("解析异常") && !addr.equals("连接异常")
+                    && !addr.equals("API配额超限") && !addr.equals("请求被中断")) {
+                    String key = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                    coordToResolvedAddress.put(key, addr);
                 }
+            }
+            // 将解析结果回填到所有同坐标的位置（遍历完整列表，而非仅去重后的列表）
+            for (UserLocation loc : locationList) {
+                if (loc.getAddress() != null && !loc.getAddress().isEmpty()) continue;
+                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                String addr = coordToResolvedAddress.get(coordKey);
+                if (addr != null) loc.setAddress(addr);
             }
             
             logger.info("坐标处理完成");
@@ -350,33 +363,16 @@ public class LocationAddressConverter {
 
         // 收集所有需要查询缓存的坐标（用于批量查询）
         List<Map<String, Double>> coordList = new ArrayList<>();
-        Map<String, UserLocation> coordToLocationMap = new HashMap<>();
         Set<String> addedCoords = new HashSet<>();
 
         for (UserLocation loc : locationList) {
-
-            if (loc.getLongitude() == null || loc.getLatitude() == null ||
-                Double.isNaN(loc.getLongitude()) || Double.isNaN(loc.getLatitude())) {
-                loc.setAddress("坐标无效");
-                continue;
-            }
-
-            // 验证坐标范围（中国地区大致范围）
-            if (loc.getLongitude() < 73 || loc.getLongitude() > 135 ||
-                loc.getLatitude() < 3 || loc.getLatitude() > 53) {
-                loc.setAddress("坐标范围无效");
-                continue;
-            }
+            if (!isValidForConversion(loc)) continue;
 
             double lng = formatDouble(loc.getLongitude(), 3);
             double lat = formatDouble(loc.getLatitude(), 3);
-            String coordKey = lng + "," + lat;
-
-            // 记录坐标到位置的映射
-            coordToLocationMap.put(coordKey, loc);
 
             // 收集需要查询的坐标（O(1)去重）
-            if (addedCoords.add(coordKey)) {
+            if (addedCoords.add(lng + "," + lat)) {
                 Map<String, Double> coordMap = new HashMap<>();
                 coordMap.put("longitude", lng);
                 coordMap.put("latitude", lat);
@@ -425,15 +421,17 @@ public class LocationAddressConverter {
             }
         }
 
-        // 根据缓存结果设置地址
-        for (Map.Entry<String, UserLocation> entry : coordToLocationMap.entrySet()) {
-            String coordKey = entry.getKey();
-            UserLocation loc = entry.getValue();
+        // 根据缓存结果设置地址（遍历完整列表，确保同坐标的所有人员都能获取到缓存地址）
+        Set<String> needConvertCoords = new HashSet<>();
+        for (UserLocation loc : locationList) {
+            if (loc.getAddress() != null) continue;  // 已有地址（无效坐标等）
+            if (!isValidForConversion(loc)) continue;
+            String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
             String cachedAddress = cacheResultMap.get(coordKey);
             if (cachedAddress != null) {
                 loc.setAddress(cachedAddress);
-            } else {
-                needConvertList.add(loc);
+            } else if (needConvertCoords.add(coordKey)) {
+                needConvertList.add(loc);  // 每个坐标仅添加一个代表用于后续API调用
             }
         }
 
@@ -489,13 +487,23 @@ public class LocationAddressConverter {
                 }
             }
 
-            // 回填第一批结果
-            for (UserLocation loc : needConvertList) {
-                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
-                UserLocation processedLoc = coordToLocation.get(coordKey);
-                if (processedLoc != null && !"解析中".equals(processedLoc.getAddress())) {
-                    loc.setAddress(processedLoc.getAddress());
+            // 构建坐标→解析地址映射
+            Map<String, String> coordToResolvedAddress = new HashMap<>();
+            for (UserLocation loc : firstBatch) {
+                String addr = loc.getAddress();
+                if (addr != null && !addr.isEmpty()
+                    && !addr.equals("解析异常") && !addr.equals("连接异常")
+                    && !addr.equals("API配额超限") && !addr.equals("请求被中断")) {
+                    String key = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                    coordToResolvedAddress.put(key, addr);
                 }
+            }
+            // 将解析结果回填到所有同坐标的位置（遍历完整列表，而非仅去重后的列表）
+            for (UserLocation loc : locationList) {
+                if (loc.getAddress() != null && !loc.getAddress().isEmpty()) continue;
+                String coordKey = formatDouble(loc.getLongitude(), 3) + "," + formatDouble(loc.getLatitude(), 3);
+                String addr = coordToResolvedAddress.get(coordKey);
+                if (addr != null) loc.setAddress(addr);
             }
             
             logger.info("第一批处理完成，立即返回结果");

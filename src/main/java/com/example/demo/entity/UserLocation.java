@@ -16,6 +16,10 @@ public class UserLocation {
     private String ckl;
 
     private String dsl;
+    private String ckJslWcl;
+    private String dsTjl;
+    private String dsZfl;
+    private String ja;
     private String hj;
 
     private String address;
@@ -83,6 +87,38 @@ public class UserLocation {
 
     public void setDsl(String dsl) {
         this.dsl = dsl;
+    }
+
+    public String getCkJslWcl() {
+        return ckJslWcl;
+    }
+
+    public void setCkJslWcl(String ckJslWcl) {
+        this.ckJslWcl = ckJslWcl;
+    }
+
+    public String getDsTjl() {
+        return dsTjl;
+    }
+
+    public void setDsTjl(String dsTjl) {
+        this.dsTjl = dsTjl;
+    }
+
+    public String getDsZfl() {
+        return dsZfl;
+    }
+
+    public void setDsZfl(String dsZfl) {
+        this.dsZfl = dsZfl;
+    }
+
+    public String getJa() {
+        return ja;
+    }
+
+    public void setJa(String ja) {
+        this.ja = ja;
     }
 
     public String getHj() {

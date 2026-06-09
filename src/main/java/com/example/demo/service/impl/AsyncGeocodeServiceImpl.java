@@ -122,12 +122,8 @@ public class AsyncGeocodeServiceImpl implements AsyncGeocodeService {
                     }
                 }
 
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+                // 速率限制统一由 GeocodeScheduler 令牌桶（3 QPS）控制，
+                // 此处不再额外 Thread.sleep，避免重复等待拖慢解析。
             }
 
             if (!geocodeResults.isEmpty()) {
