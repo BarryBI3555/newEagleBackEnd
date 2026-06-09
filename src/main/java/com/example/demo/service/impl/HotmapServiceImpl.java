@@ -15,8 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +62,7 @@ public class HotmapServiceImpl implements HotmapService {
 
         // ============ 快速路径：缓存已 complete，跳过所有 DB 查询 ============
         // 修复前：每次都查 DB（getHeatDataByDate + countTasksByDate），导致"完成后再查仍慢"
+        // 再修复：SQL 改简单行扫描，countTasksByDate 替换为更轻的 countTasksNeedingGeocode
         // 修复后：complete 状态下直接返回内存缓存
         if (cacheService.isCacheComplete(date)) {
             List<HeatData> cachedData = cacheService.getCachedHeatData(date);
@@ -71,9 +75,9 @@ public class HotmapServiceImpl implements HotmapService {
         // 读缓存（可能是空 / 不完整 / 正在解析中）
         List<HeatData> cachedData = cacheService.getCachedHeatData(date);
 
-        // 查 DB 拿到当天的聚合坐标
-        List<Map<String, Object>> dbHeatData = prplCheckTaskMapper.getHeatDataByDate(dateStr);
-        List<HeatData> dbResult = convertDbHeatData(dbHeatData);
+        // 查 DB 拿到当天的原始坐标行（不再在 SQL 里 GROUP BY ROUND，由应用层做 round + 聚合）
+        List<Map<String, Object>> dbRawRows = prplCheckTaskMapper.getHeatDataByDate(dateStr);
+        List<HeatData> dbResult = aggregateHeatData(dbRawRows);
 
         if (cachedData.isEmpty()) {
             // 首次访问：直接以 DB 结果初始化缓存
@@ -89,18 +93,19 @@ public class HotmapServiceImpl implements HotmapService {
 
         // 检查是否需要异步解析地址（只有未在解析且未 complete 才进入）
         if (enableGeocode && !cacheService.isProcessing(date) && !cacheService.isCacheComplete(date)) {
-            int totalCount = prplCheckTaskMapper.countTasksByDate(dateStr);
-            logger.info("检查是否需要异步解析: 总数据量={}, 缓存数据量={}", totalCount, cachedData.size());
+            // 用"需要地理编码的行数"代替之前全量 countTasksByDate，查询更轻
+            int needGeocodeCount = prplCheckTaskMapper.countTasksNeedingGeocode(dateStr);
+            logger.info("检查是否需要异步解析: 需解析数={}, 缓存数据量={}", needGeocodeCount, cachedData.size());
 
-            if (totalCount > cachedData.size()) {
-                // DB 数据量比缓存多 → 有新地址待解析
+            if (needGeocodeCount > 0) {
+                // DB 里仍有未解析地址，启动异步任务
                 logger.info("启动异步地址解析任务");
                 cacheService.setProcessing(date, true);
                 cacheService.setProgress(date, 0);
                 String taskKey = "hotmap:" + dateStr;
                 geocodeScheduler.submit(taskKey, () -> asyncGeocodeService.doGeocodeAddresses(date, dateStr));
             } else {
-                // 数据量一致，无需异步解析
+                // 没有需要解析的地址，直接标 complete
                 cacheService.setCacheComplete(date);
             }
         }
@@ -130,34 +135,52 @@ public class HotmapServiceImpl implements HotmapService {
     }
     
     /**
-     * 转换数据库返回的热力数据
+     * 应用层聚合：把 DB 返回的原始坐标行按 ROUND(lng,3) + ROUND(lat,3) 分组并累加计数。
+     * 替代之前 SQL 中 GROUP BY ROUND(...) 的写法，避免表达式阻止索引使用。
      */
-    private List<HeatData> convertDbHeatData(List<Map<String, Object>> dbHeatData) {
+    private List<HeatData> aggregateHeatData(List<Map<String, Object>> rawRows) {
         List<HeatData> result = new ArrayList<>();
-        
-        if (dbHeatData == null || dbHeatData.isEmpty()) {
+        if (rawRows == null || rawRows.isEmpty()) {
             return result;
         }
-        
-        for (Map<String, Object> row : dbHeatData) {
+
+        Map<String, HeatData> groupMap = new HashMap<>();
+        for (Map<String, Object> row : rawRows) {
             try {
                 Double lng = row.get("lng") != null ? ((Number) row.get("lng")).doubleValue() : null;
                 Double lat = row.get("lat") != null ? ((Number) row.get("lat")).doubleValue() : null;
-                Integer countVal = row.get("count") != null ? ((Number) row.get("count")).intValue() : 1;
-                
-                if (lng != null && lat != null) {
-                    HeatData heatData = new HeatData();
-                    heatData.setLng(lng);
-                    heatData.setLat(lat);
-                    heatData.setCount(countVal);
-                    result.add(heatData);
+                if (lng == null || lat == null) {
+                    continue;
+                }
+                double rlng = roundTo(lng, 5);
+                double rlat = roundTo(lat, 5);
+                String key = rlng + "," + rlat;
+                HeatData hd = groupMap.get(key);
+                if (hd == null) {
+                    hd = new HeatData();
+                    hd.setLng(rlng);
+                    hd.setLat(rlat);
+                    hd.setCount(1);
+                    groupMap.put(key, hd);
+                } else {
+                    hd.setCount(hd.getCount() + 1);
                 }
             } catch (Exception e) {
-                logger.warn("解析数据库返回的热力数据失败: {}", e.getMessage());
+                logger.warn("聚合一行的热力数据失败: {}", e.getMessage());
             }
         }
-        
+
+        result.addAll(groupMap.values());
+        // 保持与原 SQL 一致的排序：count 降序
+        result.sort((a, b) -> Integer.compare(b.getCount(), a.getCount()));
         return result;
+    }
+
+    /**
+     * 应用层四舍五入到指定小数位，与 SQL ROUND(x, n) 默认的 HALF_UP 一致。
+     */
+    private static double roundTo(double value, int scale) {
+        return BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
     }
 
     @Override

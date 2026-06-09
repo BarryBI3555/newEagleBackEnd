@@ -41,27 +41,36 @@
         WHERE checkdate = #{date}
     </select>
 
-    <!-- 直接在数据库层面聚合统计坐标点（保留3位小数） -->
+    <!-- 取指定日期所有坐标行（应用层做 round + 聚合）。
+         保持与原查询相同的预过滤条件：成都区域 + 坐标非空非零。
+         相比原 GROUP BY ROUND(...) 写法，可让 SQL 仅做简单行扫描，避免表达式分组。 -->
     <select id="getHeatDataByDate" resultType="java.util.Map">
-        SELECT 
-            ROUND(checklongitude, 3) as lng,
-            ROUND(checklatitude, 3) as lat,
-            COUNT(*) as count
+        SELECT checklongitude AS lng, checklatitude AS lat
         FROM prplchecktask
         WHERE checkdate = #{date}
-            AND checklongitude IS NOT NULL
-            AND checklatitude IS NOT NULL
-            AND checklongitude != 0
-            AND checklatitude != 0
-            AND checklongitude >= 102.5 AND checklongitude &lt;= 104.9
-            AND checklatitude >= 30.0 AND checklatitude &lt;= 31.5
-        GROUP BY ROUND(checklongitude, 3), ROUND(checklatitude, 3)
-        ORDER BY count DESC
+          AND checklongitude IS NOT NULL
+          AND checklatitude IS NOT NULL
+          AND checklongitude != 0
+          AND checklatitude != 0
+          AND checklongitude BETWEEN 102.5 AND 104.9
+          AND checklatitude BETWEEN 30.0 AND 31.5
     </select>
 
     <!-- 统计指定日期的数据总量 -->
     <select id="countTasksByDate" resultType="int">
         SELECT COUNT(*) FROM prplchecktask WHERE checkdate = #{date}
+    </select>
+
+    <!-- 仅统计"缺经纬度 / 落在成都区域外"且 checksite 非空的任务（需要异步地理编码）。
+         取代之前用 countTasksByDate 全量比对，缩小查询结果集。 -->
+    <select id="countTasksNeedingGeocode" resultType="int">
+        SELECT COUNT(*) FROM prplchecktask
+        WHERE checkdate = #{date}
+          AND checksite IS NOT NULL AND TRIM(checksite) != ''
+          AND (checklongitude IS NULL OR checklatitude IS NULL
+               OR checklongitude = 0 OR checklatitude = 0
+               OR checklongitude &lt; 102.5 OR checklongitude &gt; 104.9
+               OR checklatitude  &lt; 30.0  OR checklatitude  &gt; 31.5)
     </select>
 
 </mapper>
