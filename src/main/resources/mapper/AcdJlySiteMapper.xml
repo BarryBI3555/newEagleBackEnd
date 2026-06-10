@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.AcdJlySiteMapper">
+
+    <resultMap id="AcdJlySiteResultMap" type="com.example.demo.entity.AcdJlySite">
+        <id column="id" property="id"/>
+        <result column="usercode" property="usercode"/>
+        <result column="longitude" property="longitude"/>
+        <result column="latitude" property="latitude"/>
+        <result column="reporttime" property="reporttime"/>
+    </resultMap>
+
+    <select id="countByUsercodeAndReporttime" resultType="int">
+        SELECT COUNT(*) FROM acd_jly_site
+        WHERE usercode = #{usercode} AND reporttime = #{reporttime}
+    </select>
+
+    <select id="getMaxId" resultType="java.lang.Integer">
+        SELECT MAX(id) FROM acd_jly_site
+    </select>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO acd_jly_site (id, usercode, longitude, latitude, reporttime)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.usercode}, #{item.longitude}, #{item.latitude}, #{item.reporttime})
+        </foreach>
+    </insert>
+
+</mapper>
