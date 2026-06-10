@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ShuiyancheMapper">
+
+    <select id="getShuiyancheCardData" resultMap="shuiyancheCardDataMap">
+        select
+               tjdate,
+               areaflag,
+               codecname,
+               ifnull(bal_lj, 0) as bal_lj,
+               sumestipaid / 10000.0 as sumestipaid,
+               ifnull(ja_lj, 0) as ja_lj,
+               sumpaid_lj / 10000.0 as sumpaid_lj,
+               ifnull(bal_dr, '0') as bal_dr,
+               ifnull(sumestipaid_dr, '0') as sumestipaid_dr
+        from acd_shuiyanche_cld_hz
+        where areaflag = #{areaflag}
+          and codecname = #{codecname}
+          and tjdate = (select max(tjdate) from acd_shuiyanche_cld_hz)
+    </select>
+
+    <resultMap id="shuiyancheCardDataMap" type="com.example.demo.entity.AcdShuiyancheCldHz">
+        <id column="tjdate" property="tjdate"/>
+        <result column="areaflag" property="areaflag"/>
+        <result column="codecname" property="codecname"/>
+        <result column="bal_lj" property="bal_lj" javaType="java.math.BigDecimal" jdbcType="INTEGER"/>
+        <result column="sumestipaid" property="sumestipaid" javaType="java.math.BigDecimal" jdbcType="DOUBLE"/>
+        <result column="ja_lj" property="ja_lj" javaType="java.math.BigDecimal" jdbcType="INTEGER"/>
+        <result column="sumpaid_lj" property="sumpaid_lj" javaType="java.math.BigDecimal" jdbcType="DOUBLE"/>
+        <result column="bal_dr" property="bal_dr" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="sumestipaid_dr" property="sumestipaid_dr" javaType="java.lang.String" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="getReportTableData" resultMap="shuiyancheCardDataMap">
+        select
+               tjdate,
+               areaflag,
+               codecname,
+               ifnull(bal_lj, 0) as bal_lj,
+               sumestipaid / 10000.0 as sumestipaid,
+               ifnull(ja_lj, 0) as ja_lj,
+               sumpaid_lj / 10000.0 as sumpaid_lj,
+               ifnull(bal_dr, '0') as bal_dr,
+               ifnull(sumestipaid_dr, '0') as sumestipaid_dr
+        from acd_shuiyanche_cld_hz
+        where tjdate = (select max(tjdate) from acd_shuiyanche_cld_hz)
+        order by areaflag, codecname
+    </select>
+
+</mapper>
