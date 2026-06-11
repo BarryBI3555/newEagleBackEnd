@@ -8,7 +8,10 @@
         from acd_day_level_rain a
         left join acd_level_rain b
           on a.id = b.id
-        where date(a.tjdate) = current_date
+        where a.tjdate = (
+            select max(tjdate) from acd_day_level_rain
+            where tjdate <= #{today}
+        )
     </select>
 
     <!-- ==================== 固定停车点位 ==================== -->
@@ -21,7 +24,10 @@
     <select id="getZhiban" resultType="com.example.demo.entity.RainZhiban">
         select *
         from acd_zhiban_rain
-        where date(tjdate) = current_date
+        where tjdate = (
+            select max(tjdate) from acd_zhiban_rain
+            where tjdate <= #{today}
+        )
         order by tjdate
     </select>
 

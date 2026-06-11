@@ -6,6 +6,7 @@ import com.example.demo.service.ShuiyancheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -16,11 +17,13 @@ public class ShuiyancheServiceImpl implements ShuiyancheService {
 
     @Override
     public AcdShuiyancheCldHz getCardData() {
-        return shuiyancheMapper.getShuiyancheCardData("车险", "合计");
+        String today = LocalDate.now().toString();
+        return shuiyancheMapper.getShuiyancheCardData("车险", "合计", today);
     }
 
     @Override
     public List<AcdShuiyancheCldHz> getReportTableData() {
-        return shuiyancheMapper.getReportTableData();
+        String today = LocalDate.now().toString();
+        return shuiyancheMapper.getReportTableData(today);
     }
 }

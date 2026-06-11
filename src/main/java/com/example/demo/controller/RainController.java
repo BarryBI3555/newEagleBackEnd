@@ -34,7 +34,8 @@ public class RainController {
 
     @GetMapping("/dayLevel")
     public Result<List<RainDayLevel>> dayLevel() {
-        return Result.success(rainMapper.getDayLevel());
+        String today = LocalDate.now().toString();
+        return Result.success(rainMapper.getDayLevel(today));
     }
 
     @GetMapping("/carPlace")
@@ -44,7 +45,8 @@ public class RainController {
 
     @GetMapping("/zhiban")
     public Result<List<RainZhiban>> zhiban() {
-        return Result.success(rainMapper.getZhiban());
+        String today = LocalDate.now().toString();
+        return Result.success(rainMapper.getZhiban(today));
     }
 
     @GetMapping("/repair")

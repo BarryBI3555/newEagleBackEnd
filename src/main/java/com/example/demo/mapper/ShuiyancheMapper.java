@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface ShuiyancheMapper {
-    AcdShuiyancheCldHz getShuiyancheCardData(@Param("areaflag") String areaflag, @Param("codecname") String codecname);
+    AcdShuiyancheCldHz getShuiyancheCardData(@Param("areaflag") String areaflag, @Param("codecname") String codecname, @Param("today") String today);
 
-    List<AcdShuiyancheCldHz> getReportTableData();
+    List<AcdShuiyancheCldHz> getReportTableData(@Param("today") String today);
 }
