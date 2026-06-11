@@ -145,6 +145,7 @@ public class HotmapServiceImpl implements HotmapService {
         }
 
         Map<String, HeatData> groupMap = new HashMap<>();
+        int failedRows = 0;
         for (Map<String, Object> row : rawRows) {
             try {
                 Double lng = row.get("lng") != null ? ((Number) row.get("lng")).doubleValue() : null;
@@ -166,8 +167,12 @@ public class HotmapServiceImpl implements HotmapService {
                     hd.setCount(hd.getCount() + 1);
                 }
             } catch (Exception e) {
-                logger.warn("聚合一行的热力数据失败: {}", e.getMessage());
+                failedRows++;
             }
+        }
+
+        if (failedRows > 0) {
+            logger.warn("热力图数据聚合计跳过 {} 行（解析失败）", failedRows);
         }
 
         result.addAll(groupMap.values());

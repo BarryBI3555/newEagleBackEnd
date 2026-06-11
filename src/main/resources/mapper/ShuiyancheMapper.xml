@@ -7,28 +7,33 @@
                tjdate,
                areaflag,
                codecname,
-               ifnull(bal_lj, 0) as bal_lj,
-               sumestipaid / 10000.0 as sumestipaid,
-               ifnull(ja_lj, 0) as ja_lj,
-               sumpaid_lj / 10000.0 as sumpaid_lj,
-               ifnull(bal_dr, '0') as bal_dr,
-               ifnull(sumestipaid_dr, '0') as sumestipaid_dr
+               coalesce(bal_lj, 0)          as bal_lj,
+               sumestipaid / 10000.0         as sumestipaid,
+               coalesce(ja_lj, 0)            as ja_lj,
+               sumpaid_lj / 10000.0          as sumpaid_lj,
+               cast(coalesce(bal_dr, 0) as varchar(50))        as bal_dr,
+               cast(coalesce(sumestipaid_dr, 0) as varchar(50)) as sumestipaid_dr
         from acd_shuiyanche_cld_hz
         where areaflag = #{areaflag}
           and codecname = #{codecname}
-          and tjdate = (select max(tjdate) from acd_shuiyanche_cld_hz)
+          and tjdate = (
+              select max(tjdate) from acd_shuiyanche_cld_hz
+              where areaflag = #{areaflag}
+                and codecname = #{codecname}
+                and tjdate &lt;= #{today}
+          )
     </select>
 
     <resultMap id="shuiyancheCardDataMap" type="com.example.demo.entity.AcdShuiyancheCldHz">
         <id column="tjdate" property="tjdate"/>
         <result column="areaflag" property="areaflag"/>
         <result column="codecname" property="codecname"/>
-        <result column="bal_lj" property="bal_lj" javaType="java.math.BigDecimal" jdbcType="INTEGER"/>
-        <result column="sumestipaid" property="sumestipaid" javaType="java.math.BigDecimal" jdbcType="DOUBLE"/>
-        <result column="ja_lj" property="ja_lj" javaType="java.math.BigDecimal" jdbcType="INTEGER"/>
-        <result column="sumpaid_lj" property="sumpaid_lj" javaType="java.math.BigDecimal" jdbcType="DOUBLE"/>
-        <result column="bal_dr" property="bal_dr" javaType="java.lang.String" jdbcType="VARCHAR"/>
-        <result column="sumestipaid_dr" property="sumestipaid_dr" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="bal_lj" property="bal_lj"/>
+        <result column="sumestipaid" property="sumestipaid"/>
+        <result column="ja_lj" property="ja_lj"/>
+        <result column="sumpaid_lj" property="sumpaid_lj"/>
+        <result column="bal_dr" property="bal_dr"/>
+        <result column="sumestipaid_dr" property="sumestipaid_dr"/>
     </resultMap>
 
     <select id="getReportTableData" resultMap="shuiyancheCardDataMap">
@@ -36,14 +41,17 @@
                tjdate,
                areaflag,
                codecname,
-               ifnull(bal_lj, 0) as bal_lj,
-               sumestipaid / 10000.0 as sumestipaid,
-               ifnull(ja_lj, 0) as ja_lj,
-               sumpaid_lj / 10000.0 as sumpaid_lj,
-               ifnull(bal_dr, '0') as bal_dr,
-               ifnull(sumestipaid_dr, '0') as sumestipaid_dr
+               coalesce(bal_lj, 0)          as bal_lj,
+               sumestipaid / 10000.0         as sumestipaid,
+               coalesce(ja_lj, 0)            as ja_lj,
+               sumpaid_lj / 10000.0          as sumpaid_lj,
+               cast(coalesce(bal_dr, 0) as varchar(50))        as bal_dr,
+               cast(coalesce(sumestipaid_dr, 0) as varchar(50)) as sumestipaid_dr
         from acd_shuiyanche_cld_hz
-        where tjdate = (select max(tjdate) from acd_shuiyanche_cld_hz)
+        where tjdate = (
+            select max(tjdate) from acd_shuiyanche_cld_hz
+            where tjdate &lt;= #{today}
+        )
         order by areaflag, codecname
     </select>
 

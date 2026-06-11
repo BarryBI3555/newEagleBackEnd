@@ -16,13 +16,13 @@ import java.util.List;
 public interface RainMapper {
 
     /** 每日等级预警（按文档：join level 表取 rank/warning/meteor） */
-    List<RainDayLevel> getDayLevel();
+    List<RainDayLevel> getDayLevel(@Param("today") String today);
 
     /** 固定停车点位 */
     List<RainCarPlace> getCarPlace();
 
     /** 值班信息（仅当天） */
-    List<RainZhiban> getZhiban();
+    List<RainZhiban> getZhiban(@Param("today") String today);
 
     /** 施救单位 */
     List<RainSaveRepair> getRepair();
