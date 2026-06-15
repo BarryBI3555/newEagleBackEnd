@@ -24,5 +24,6 @@ public class WorkloadEmpData {
         private Integer ckJsl;
         private Integer dsTjl;
         private Boolean isAbnormal;   // 该月是否异常
+        private String abnormalType;   // 异常类型：spike（尖峰）/ trend（趋势漂移）
     }
 }

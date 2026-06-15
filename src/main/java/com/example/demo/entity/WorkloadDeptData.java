@@ -19,5 +19,7 @@ public class WorkloadDeptData {
         private Integer ja;        // 结案量
         private Integer ckJsl;     // 查勘接收量
         private Integer dsTjl;     // 定损提交量
+        private Boolean isAbnormal;   // 是否异常
+        private String abnormalType;   // 异常类型：spike / trend
     }
 }

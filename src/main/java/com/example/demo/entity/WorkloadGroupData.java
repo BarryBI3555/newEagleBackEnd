@@ -20,5 +20,7 @@ public class WorkloadGroupData {
         private Integer ja;
         private Integer ckJsl;
         private Integer dsTjl;
+        private Boolean isAbnormal;   // 是否异常
+        private String abnormalType;   // 异常类型：spike / trend
     }
 }
