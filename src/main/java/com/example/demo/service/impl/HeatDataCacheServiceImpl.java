@@ -50,7 +50,73 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
         }
         entry.touch();
         // 防御性拷贝，避免外部修改内部状态
-        return new ArrayList<>(entry.data);
+        List<HeatData> copy = new ArrayList<>(entry.data);
+        // 对拷贝标记异常后返回（缓存本身保持原始数据不变）
+        markAbnormalOnList(copy);
+        return copy;
+    }
+
+    /**
+     * 基于 Poisson / Negative Binomial Pearson 残差分析标记异常点
+     *
+     * 模型：
+     *   - y_i ~ Poisson(λ_i)，无过离散时使用
+     *   - y_i ~ NB(μ, θ)，当 Var/Mean > 1（过离散）时升级使用
+     *
+     * Pearson 残差：
+     *   - Poisson:    r_i = (y_i - λ̂) / √λ̂
+     *   - NB:        r_i = (y_i - λ̂) / √(λ̂ + λ̂²/θ)
+     *
+     * 异常判定：|r_i| > 2 → 疑似异常，|r_i| > 3 → 强异常
+     * 残差为正表示高于期望（危险高发点），为负表示低于期望
+     */
+    private void markAbnormalOnList(List<HeatData> dataList) {
+        if (dataList == null || dataList.isEmpty()) return;
+        int n = dataList.size();
+        List<Integer> counts = new ArrayList<>();
+        for (HeatData d : dataList) {
+            if (d.getCount() != null) counts.add(d.getCount());
+        }
+        if (counts.isEmpty()) return;
+
+        // Step 1: 计算全局均值 λ̂
+        double lambda = counts.stream().mapToInt(Integer::intValue).average().orElse(0);
+        if (lambda < 1e-6) return;
+
+        // Step 2: 计算方差和离散度，判断是否过离散
+        double variance = counts.stream()
+                .mapToDouble(v -> Math.pow(v - lambda, 2)).sum() / n;
+        double dispersion = variance / lambda; // Var/Mean 比值
+
+        // Step 3: 估算负二项过离散参数 θ
+        // θ = λ / (dispersion - 1)，dispersion <= 1 时无需过离散（用泊松）
+        double theta = Double.MAX_VALUE;
+        boolean useNegBin = false;
+        if (dispersion > 1.0 && lambda > 0) {
+            theta = lambda / (dispersion - 1.0);
+            useNegBin = theta > 0.1; // θ 过小说明严重过离散，但仍可计算
+        }
+
+        // Step 4: 计算 Pearson 残差并标记
+        long abnormalCount = 0;
+        for (HeatData d : dataList) {
+            double y = d.getCount() != null ? d.getCount() : 0;
+            double residual;
+            if (useNegBin) {
+                // Negative Binomial Pearson 残差
+                double nbVariance = lambda + (lambda * lambda) / theta;
+                residual = (y - lambda) / Math.sqrt(nbVariance);
+            } else {
+                // Poisson Pearson 残差
+                residual = (y - lambda) / Math.sqrt(lambda);
+            }
+            d.setAbnormal(Math.abs(residual) > 2.0);
+            if (Math.abs(residual) > 2.0) abnormalCount++;
+        }
+
+        logger.info("[markAbnormalOnList] 数据量={}, 均值={}, 方差={}, 离散度={}, 模型={}, 异常点数={}",
+                n, String.format("%.3f", lambda), String.format("%.3f", variance),
+                String.format("%.3f", dispersion), useNegBin ? "NegativeBinomial" : "Poisson", abnormalCount);
     }
 
     @Override
