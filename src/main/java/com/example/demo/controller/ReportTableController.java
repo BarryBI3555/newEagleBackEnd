@@ -16,6 +16,14 @@ import com.example.demo.entity.AcdPflsgnXny;
 import com.example.demo.entity.AcdAnjunCxZgs;
 import com.example.demo.entity.AcdAnjunCxKhq;
 import com.example.demo.entity.AcdAnjunCxXny;
+import com.example.demo.entity.AcdChakanYear;
+import com.example.demo.entity.AcdDingsunTjlYear;
+import com.example.demo.entity.AcdDingsunWclYear;
+import com.example.demo.entity.AcdCkDswcYear;
+import com.example.demo.entity.AcdDingsunZflYear;
+import com.example.demo.entity.AcdLisuanYear;
+import com.example.demo.entity.AcdRsGzlYear;
+import com.example.demo.entity.AcdChakanMonth;
 import com.example.demo.entity.Result;
 import com.example.demo.service.ReportTableService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -371,6 +379,159 @@ public class ReportTableController {
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("获取案均赔款-新能源（车险）失败：" + e.getMessage());
+        }
+    }
+
+    // ==================== 年度每月系列 ====================
+
+    /** 查勘量-年度每月 */
+    @GetMapping("/chakan_year/list")
+    public Result<List<AcdChakanYear>> getChakanYearList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_chakan_year");
+            }
+            List<AcdChakanYear> data = reportTableService.getChakanYearData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取查勘量-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 定损提交量-年度每月 */
+    @GetMapping("/dingsun_tjl_year/list")
+    public Result<List<AcdDingsunTjlYear>> getDingsunTjlYearList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_tjl_year");
+            }
+            List<AcdDingsunTjlYear> data = reportTableService.getDingsunTjlYearData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取定损提交量-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 定损完成量-年度每月 */
+    @GetMapping("/dingsun_wcl_year/list")
+    public Result<List<AcdDingsunWclYear>> getDingsunWclYearList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_wcl_year");
+            }
+            List<AcdDingsunWclYear> data = reportTableService.getDingsunWclYearData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取定损完成量-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 查勘量+定损完成-年度每月 */
+    @GetMapping("/ck_dswc_year/list")
+    public Result<List<AcdCkDswcYear>> getCkDswcYearList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_ck_dswc_year");
+            }
+            List<AcdCkDswcYear> data = reportTableService.getCkDswcYearData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取查勘量+定损完成-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 定损支付量-年度每月 */
+    @GetMapping("/dingsun_zfl_year/list")
+    public Result<List<AcdDingsunZflYear>> getDingsunZflYearList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_zfl_year");
+            }
+            List<AcdDingsunZflYear> data = reportTableService.getDingsunZflYearData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取定损支付量-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 理算量-年度每月 */
+    @GetMapping("/lisuan_year/list")
+    public Result<List<AcdLisuanYear>> getLisuanYearList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_lisuan_year");
+            }
+            List<AcdLisuanYear> data = reportTableService.getLisuanYearData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取理算量-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 人伤跟踪量-年度每月 */
+    @GetMapping("/rs_gzl_year/list")
+    public Result<List<AcdRsGzlYear>> getRsGzlYearList(
+            @RequestParam(required = false) String tjDate
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_rs_gzl_year");
+            }
+            List<AcdRsGzlYear> data = reportTableService.getRsGzlYearData(tjDate);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取人伤跟踪量-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 人伤调解量-年度每月 */
+    @GetMapping("/rs_tjl_year/list")
+    public Result<List<AcdRsGzlYear>> getRsTjlYearList(
+            @RequestParam(required = false) String tjDate
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_rs_gzl_year");
+            }
+            List<AcdRsGzlYear> data = reportTableService.getRsTjlYearData(tjDate);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取人伤调解量-年度每月失败：" + e.getMessage());
+        }
+    }
+
+    /** 查勘量-月度每日 */
+    @GetMapping("/chakan_month/list")
+    public Result<List<AcdChakanMonth>> getChakanMonthList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_chakan_month");
+            }
+            List<AcdChakanMonth> data = reportTableService.getChakanMonthData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取查勘量-月度每日失败：" + e.getMessage());
         }
     }
 }

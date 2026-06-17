@@ -16,6 +16,14 @@ import com.example.demo.entity.AcdPflsgnXny;
 import com.example.demo.entity.AcdAnjunCxZgs;
 import com.example.demo.entity.AcdAnjunCxKhq;
 import com.example.demo.entity.AcdAnjunCxXny;
+import com.example.demo.entity.AcdChakanYear;
+import com.example.demo.entity.AcdDingsunTjlYear;
+import com.example.demo.entity.AcdDingsunWclYear;
+import com.example.demo.entity.AcdCkDswcYear;
+import com.example.demo.entity.AcdDingsunZflYear;
+import com.example.demo.entity.AcdLisuanYear;
+import com.example.demo.entity.AcdRsGzlYear;
+import com.example.demo.entity.AcdChakanMonth;
 
 import java.util.List;
 
@@ -80,4 +88,33 @@ public interface ReportTableService {
 
     /** 案均赔款-新能源（车险） */
     List<AcdAnjunCxXny> getAnjunCxXnyData(String tjDate, String comnameSgs);
+
+    // ==================== 年度每月系列 ====================
+
+    /** 查勘量-年度每月 */
+    List<AcdChakanYear> getChakanYearData(String tjDate, String comnameSgs);
+
+    /** 定损提交量-年度每月 */
+    List<AcdDingsunTjlYear> getDingsunTjlYearData(String tjDate, String comnameSgs);
+
+    /** 定损完成量-年度每月 */
+    List<AcdDingsunWclYear> getDingsunWclYearData(String tjDate, String comnameSgs);
+
+    /** 查勘量+定损完成-年度每月 */
+    List<AcdCkDswcYear> getCkDswcYearData(String tjDate, String comnameSgs);
+
+    /** 定损支付量-年度每月 */
+    List<AcdDingsunZflYear> getDingsunZflYearData(String tjDate, String comnameSgs);
+
+    /** 理算量-年度每月 */
+    List<AcdLisuanYear> getLisuanYearData(String tjDate, String comnameSgs);
+
+    /** 人伤跟踪量-年度每月 */
+    List<AcdRsGzlYear> getRsGzlYearData(String tjDate);
+
+    /** 人伤调解量-年度每月 */
+    List<AcdRsGzlYear> getRsTjlYearData(String tjDate);
+
+    /** 查勘量-月度每日 */
+    List<AcdChakanMonth> getChakanMonthData(String tjDate, String comnameSgs);
 }

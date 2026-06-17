@@ -407,4 +407,114 @@
         order by comcode_sgs, xnyflag
     </select>
 
+    <!-- ==================== 查勘量-年度每月 ==================== -->
+    <select id="getChakanYearData" resultType="com.example.demo.entity.AcdChakanYear">
+        select * , tjdate as maxTjTime
+        from acd_chakan_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+
+    <!-- ==================== 定损提交量-年度每月 ==================== -->
+    <select id="getDingsunTjlYearData" resultType="com.example.demo.entity.AcdDingsunTjlYear">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_tjl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+
+    <!-- ==================== 定损完成量-年度每月 ==================== -->
+    <select id="getDingsunWclYearData" resultType="com.example.demo.entity.AcdDingsunWclYear">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_wcl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj
+    </select>
+
+    <!-- ==================== 查勘量+定损完成-年度每月 ==================== -->
+    <select id="getCkDswcYearData" resultType="com.example.demo.entity.AcdCkDswcYear">
+        select * , tjdate as maxTjTime
+        from acd_ck_dswc_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+
+    <!-- ==================== 定损支付量-年度每月 ==================== -->
+    <select id="getDingsunZflYearData" resultType="com.example.demo.entity.AcdDingsunZflYear">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_zfl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+
+    <!-- ==================== 理算量-年度每月 ==================== -->
+    <select id="getLisuanYearData" resultType="com.example.demo.entity.AcdLisuanYear">
+        select * , tjdate as maxTjTime
+        from acd_lisuan_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+
+    <!-- ==================== 人伤跟踪量-年度每月 ==================== -->
+    <select id="getRsGzlYearData" resultType="com.example.demo.entity.AcdRsGzlYear">
+        select * , tjdate as maxTjTime
+        from acd_rs_gzl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        and jaflag = '后续跟踪'
+        and comname like '%人伤%'
+        order by hj desc
+    </select>
+
+    <!-- ==================== 人伤调解量-年度每月 ==================== -->
+    <select id="getRsTjlYearData" resultType="com.example.demo.entity.AcdRsGzlYear">
+        select * , tjdate as maxTjTime
+        from acd_rs_gzl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        and jaflag = '人伤调解'
+        order by hj desc
+    </select>
+
+    <!-- ==================== 查勘量-月度每日 ==================== -->
+    <select id="getChakanMonthData" resultType="com.example.demo.entity.AcdChakanMonth">
+        select * , tjdate as maxTjTime
+        from acd_chakan_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+
 </mapper>
