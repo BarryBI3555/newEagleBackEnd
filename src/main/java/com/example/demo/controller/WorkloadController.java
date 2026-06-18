@@ -5,6 +5,8 @@ import com.example.demo.entity.WorkloadDeptData;
 import com.example.demo.entity.WorkloadGroupData;
 import com.example.demo.entity.WorkloadEmpData;
 import com.example.demo.service.WorkloadService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,8 @@ import java.util.List;
 @RequestMapping("/api")
 @CrossOrigin("*")
 public class WorkloadController {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkloadController.class);
 
     @Autowired
     private WorkloadService workloadService;
@@ -44,7 +48,8 @@ public class WorkloadController {
                     startDate, endDate, comName, granularity);
             return Result.success(data);
         } catch (Exception e) {
-            return Result.error("获取部门工作量失败：" + e.getMessage());
+            log.error("获取部门工作量失败", e);
+            return Result.error("获取部门工作量失败", e);
         }
     }
 
@@ -74,7 +79,8 @@ public class WorkloadController {
                     comCode, startDate, endDate, groups, granularity);
             return Result.success(data);
         } catch (Exception e) {
-            return Result.error("获取小组工作量失败：" + e.getMessage());
+            log.error("获取小组工作量失败", e);
+            return Result.error("获取小组工作量失败", e);
         }
     }
 
@@ -104,7 +110,8 @@ public class WorkloadController {
                     groupsCode, startDate, endDate, userName, granularity);
             return Result.success(data);
         } catch (Exception e) {
-            return Result.error("获取员工工作量失败：" + e.getMessage());
+            log.error("获取员工工作量失败", e);
+            return Result.error("获取员工工作量失败", e);
         }
     }
 
@@ -117,7 +124,8 @@ public class WorkloadController {
             String code = workloadService.getComCodeByName(comName);
             return Result.success(code);
         } catch (Exception e) {
-            return Result.error("获取部门编码失败：" + e.getMessage());
+            log.error("获取部门编码失败", e);
+            return Result.error("获取部门编码失败", e);
         }
     }
 
@@ -133,7 +141,8 @@ public class WorkloadController {
             String code = workloadService.getGroupsCodeByComAndName(comCode, groupsName);
             return Result.success(code);
         } catch (Exception e) {
-            return Result.error("获取小组编码失败：" + e.getMessage());
+            log.error("获取小组编码失败", e);
+            return Result.error("获取小组编码失败", e);
         }
     }
 }

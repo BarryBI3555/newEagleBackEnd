@@ -8,6 +8,7 @@ import com.example.demo.entity.WorkloadGroupData;
 import com.example.demo.entity.WorkloadEmpData;
 import com.example.demo.mapper.WorkloadMapper;
 import com.example.demo.service.WorkloadService;
+import com.example.demo.util.TableNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,8 @@ public class WorkloadServiceImpl implements WorkloadService {
 
     @Override
     public String getMaxTjDate(String tableName) {
+        // 白名单校验：阻断 SQL 注入（XML 中 FROM ${tableName} 是字符串拼接）
+        TableNames.requireValid(tableName);
         return workloadMapper.getMaxTjDateByTable(tableName);
     }
 

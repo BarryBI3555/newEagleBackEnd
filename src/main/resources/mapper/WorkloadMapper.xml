@@ -2,7 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.mapper.WorkloadMapper">
 
-    <!-- 通用：根据表名获取最大统计日期 -->
+    <!-- 通用：根据表名获取最大统计日期
+         ${tableName} 是字符串拼接（MyBatis 不支持 #{} 传 SQL 标识符）。
+         安全模型：com.example.demo.util.TableNames 白名单在 Service 层
+         拦截非法表名，本方法严禁接收任何外部入参。 -->
     <select id="getMaxTjDateByTable" resultType="java.lang.String">
         SELECT MAX(tjdate)
         FROM ${tableName}

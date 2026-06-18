@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.entity.HeatData;
 import com.example.demo.entity.Result;
 import com.example.demo.service.FloodSeasonHeatmapService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rain")
 public class FloodSeasonHeatmapController {
+
+    private static final Logger log = LoggerFactory.getLogger(FloodSeasonHeatmapController.class);
 
     @Autowired
     private FloodSeasonHeatmapService floodSeasonHeatmapService;
@@ -29,7 +33,8 @@ public class FloodSeasonHeatmapController {
             }
             return Result.success(data);
         } catch (Exception e) {
-            return Result.error("获取热力图数据失败: " + e.getMessage());
+            log.error("获取热力图数据失败", e);
+            return Result.error("获取热力图数据失败", e);
         }
     }
 }

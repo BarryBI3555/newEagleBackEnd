@@ -34,6 +34,21 @@ public interface ReportTableMapper{
 
     String getMaxTjDateByTable(@Param("tableName") String tableName);
 
+    /**
+     * 按表名 + 业务标志（如 jaflag）取最大统计日期。
+     * 用于同一张表被多个报表共用、按字段区分的场合（如 acd_rs_gzl_year）。
+     */
+    String getMaxTjDateByTableAndFlag(@Param("tableName") String tableName,
+                                      @Param("flagColumn") String flagColumn,
+                                      @Param("flagValue") String flagValue);
+
+    /**
+     * 专用重载：列名固定为 jaflag，按 jaflag 值过滤后取 MAX(tjdate)。
+     * 用于 acd_rs_gzl_year 等共享表。
+     */
+    String getMaxTjDateByTableAndFlag(@Param("tableName") String tableName,
+                                      @Param("jaflag") String jaflag);
+
     List<CurGzlTableRy> getCurGzlData(@Param("startDate") String startDate,
                                       @Param("endDate") String endDate,
                                       @Param("comName") String comName,
@@ -193,5 +208,273 @@ public interface ReportTableMapper{
             @Param("tjDate") String tjDate,
             @Param("comnameSgs") String comnameSgs
     );
+
+    // ==================== 分页查询（laoxiao 9 + chakan_month） ====================
+
+    /** 查勘量-年度每月 - 分页 */
+    List<AcdChakanYear> getChakanYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countChakanYear(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 定损提交量-年度每月 - 分页 */
+    List<AcdDingsunTjlYear> getDingsunTjlYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countDingsunTjlYear(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 定损完成量-年度每月 - 分页 */
+    List<AcdDingsunWclYear> getDingsunWclYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countDingsunWclYear(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 查勘量+定损完成-年度每月 - 分页 */
+    List<AcdCkDswcYear> getCkDswcYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countCkDswcYear(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 定损支付量-年度每月 - 分页 */
+    List<AcdDingsunZflYear> getDingsunZflYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countDingsunZflYear(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 理算量-年度每月 - 分页 */
+    List<AcdLisuanYear> getLisuanYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countLisuanYear(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 人伤跟踪量-年度每月 - 分页 */
+    List<AcdRsGzlYear> getRsGzlYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countRsGzlYear(@Param("tjDate") String tjDate);
+
+    /** 人伤调解量-年度每月 - 分页 */
+    List<AcdRsGzlYear> getRsTjlYearDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countRsTjlYear(@Param("tjDate") String tjDate);
+
+    /** 查勘量-月度每日 - 分页 */
+    List<AcdChakanMonth> getChakanMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countChakanMonth(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    // ==================== 分页查询（lpcenter/efficiency 16 端点） ====================
+
+    /** 人员日工作量 - 分页 */
+    List<CurGzlTableRy> getCurGzlDataPage(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName,
+            @Param("groups") String groups,
+            @Param("userName") String userName,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countCurGzlData(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName,
+            @Param("groups") String groups,
+            @Param("userName") String userName);
+
+    /** 部门日工作量 - 分页 */
+    List<CurGzlTableBm> getCurGzlDataBmPage(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countCurGzlDataBm(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName);
+
+    /** 小组日工作量 - 分页 */
+    List<CurGzlTableGroup> getCurGzlDataGroupPage(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName,
+            @Param("groups") String groups,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countCurGzlDataGroup(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName,
+            @Param("groups") String groups);
+
+    /** 人伤日工作量 - 分页 */
+    List<CurGzlTableRs> getCurGzlDataRsPage(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countCurGzlDataRs(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("comName") String comName);
+
+    /** 周期-市公司 - 分页 */
+    List<AcdZhouqiQs> getZhouqiQsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countZhouqiQs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 周期-部门 - 分页 */
+    List<AcdZhouqiBm> getZhouqiBmDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countZhouqiBm(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname);
+
+    /** 综合赔付率-客户群 - 分页 */
+    List<AcdZhpflKhq> getZhpflKhqDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countZhpflKhq(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 车险结案率-部门 - 分页 */
+    List<AcdPacllBm> getPacllBmDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPacllBm(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname);
+
+    /** 车险结案率-小组 - 分页 */
+    List<AcdPacllXz> getPacllXzDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname,
+            @Param("groups") String groups,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPacllXz(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname,
+            @Param("groups") String groups);
+
+    /** 车险结案率-人员 - 分页 */
+    List<AcdPacllRy> getPacllRyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("bm") String bm,
+            @Param("groups") String groups,
+            @Param("username") String username,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPacllRy(
+            @Param("tjDate") String tjDate,
+            @Param("bm") String bm,
+            @Param("groups") String groups,
+            @Param("username") String username);
+
+    /** 事故年赔付率-支公司 - 分页 */
+    List<AcdPflsgnZgs> getPflsgnZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflsgnZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 事故年赔付率-客户群 - 分页 */
+    List<AcdPflsgnKhq> getPflsgnKhqDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflsgnKhq(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 事故年赔付率-新能源 - 分页 */
+    List<AcdPflsgnXny> getPflsgnXnyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflsgnXny(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 案均赔款-支公司（车险）- 分页 */
+    List<AcdAnjunCxZgs> getAnjunCxZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countAnjunCxZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 案均赔款-客户群（车险）- 分页 */
+    List<AcdAnjunCxKhq> getAnjunCxKhqDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countAnjunCxKhq(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 案均赔款-新能源（车险）- 分页 */
+    List<AcdAnjunCxXny> getAnjunCxXnyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countAnjunCxXny(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
 
 }

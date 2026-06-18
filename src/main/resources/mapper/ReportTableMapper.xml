@@ -2,13 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.mapper.ReportTableMapper">
 
-    <select id="getMaxTjDate" resultType="java.lang.String">
-        SELECT MAX(tjdate)
-        FROM acd_dangri_gzl_ry
-        WHERE groups IS NOT NULL
-          AND groupscode NOT IN ('5101701','5101702','5101703')
-    </select>
-
+    <!-- ===================== 人员日工作量（含异常标识） ===================== -->
     <select id="getCurGzlData" resultType="com.example.demo.entity.CurGzlTableRy">
         SELECT a.comname as comName, a.username as userName, a.usercode as userCode, 
                a.groups, a.groupscode as groupsCode,
@@ -60,10 +54,29 @@
         ORDER BY comName desc
     </select>
 
-    <!-- 通用：根据表名获取最大统计日期 -->
+    <!-- 通用：根据表名获取最大统计日期
+         ${tableName} 是字符串拼接（MyBatis 不支持 #{} 传 SQL 标识符）。
+         安全模型：com.example.demo.util.TableNames 白名单在 Service 层
+         拦截非法表名，本方法严禁接收任何外部入参。 -->
     <select id="getMaxTjDateByTable" resultType="java.lang.String">
         SELECT MAX(tjdate)
         FROM ${tableName}
+    </select>
+
+    <!-- 通用：根据表名 + 业务标志取最大统计日期
+         ${tableName} / ${flagColumn} 仍是字符串拼接。
+         安全模型：TableNames 白名单 + Service 层 flagColumn/flagValue 白名单。 -->
+    <select id="getMaxTjDateByTableAndFlag" resultType="java.lang.String">
+        SELECT MAX(tjdate)
+        FROM ${tableName}
+        WHERE ${flagColumn} = #{flagValue}
+    </select>
+
+    <!-- 专用重载：列名固定 jaflag，按 jaflag 值过滤后取 MAX(tjdate) -->
+    <select id="getMaxTjDateByTableAndFlag" resultType="java.lang.String">
+        SELECT MAX(tjdate)
+        FROM ${tableName}
+        WHERE jaflag = #{jaflag}
     </select>
 
     <!-- ===================== 小组统计表 ===================== -->
@@ -515,6 +528,653 @@
             and comname_sgs like concat('%', #{comnameSgs}, '%')
         </if>
         order by hj desc
+    </select>
+
+    <!-- ==================== 分页查询（laoxiao 9 + chakan_month） ====================
+         LIMIT #{limit} OFFSET #{offset} 走 MyBatis 预编译参数化，
+         GBase 8a / MySQL / SQLite 通用；非 SQLite 专有关键字。 -->
+
+    <!-- 查勘量-年度每月 - 分页 -->
+    <select id="getChakanYearDataPage" resultType="com.example.demo.entity.AcdChakanYear">
+        select * , tjdate as maxTjTime
+        from acd_chakan_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countChakanYear" resultType="java.lang.Long">
+        select count(*) from acd_chakan_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 定损提交量-年度每月 - 分页 -->
+    <select id="getDingsunTjlYearDataPage" resultType="com.example.demo.entity.AcdDingsunTjlYear">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_tjl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countDingsunTjlYear" resultType="java.lang.Long">
+        select count(*) from acd_dingsun_tjl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 定损完成量-年度每月 - 分页 -->
+    <select id="getDingsunWclYearDataPage" resultType="com.example.demo.entity.AcdDingsunWclYear">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_wcl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countDingsunWclYear" resultType="java.lang.Long">
+        select count(*) from acd_dingsun_wcl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 查勘量+定损完成-年度每月 - 分页 -->
+    <select id="getCkDswcYearDataPage" resultType="com.example.demo.entity.AcdCkDswcYear">
+        select * , tjdate as maxTjTime
+        from acd_ck_dswc_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countCkDswcYear" resultType="java.lang.Long">
+        select count(*) from acd_ck_dswc_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 定损支付量-年度每月 - 分页（已 1136 行，重点） -->
+    <select id="getDingsunZflYearDataPage" resultType="com.example.demo.entity.AcdDingsunZflYear">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_zfl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countDingsunZflYear" resultType="java.lang.Long">
+        select count(*) from acd_dingsun_zfl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 理算量-年度每月 - 分页 -->
+    <select id="getLisuanYearDataPage" resultType="com.example.demo.entity.AcdLisuanYear">
+        select * , tjdate as maxTjTime
+        from acd_lisuan_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countLisuanYear" resultType="java.lang.Long">
+        select count(*) from acd_lisuan_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 人伤跟踪量-年度每月 - 分页（共享表 acd_rs_gzl_year，按 jaflag 区分） -->
+    <select id="getRsGzlYearDataPage" resultType="com.example.demo.entity.AcdRsGzlYear">
+        select * , tjdate as maxTjTime
+        from acd_rs_gzl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        and jaflag = '后续跟踪'
+        and comname like '%人伤%'
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countRsGzlYear" resultType="java.lang.Long">
+        select count(*) from acd_rs_gzl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        and jaflag = '后续跟踪'
+        and comname like '%人伤%'
+    </select>
+
+    <!-- 人伤调解量-年度每月 - 分页（共享表 acd_rs_gzl_year） -->
+    <select id="getRsTjlYearDataPage" resultType="com.example.demo.entity.AcdRsGzlYear">
+        select * , tjdate as maxTjTime
+        from acd_rs_gzl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        and jaflag = '人伤调解'
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countRsTjlYear" resultType="java.lang.Long">
+        select count(*) from acd_rs_gzl_year
+        where 1 = 1
+        and tjdate= #{tjDate}
+        and jaflag = '人伤调解'
+    </select>
+
+    <!-- 查勘量-月度每日 - 分页 -->
+    <select id="getChakanMonthDataPage" resultType="com.example.demo.entity.AcdChakanMonth">
+        select * , tjdate as maxTjTime
+        from acd_chakan_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countChakanMonth" resultType="java.lang.Long">
+        select count(*) from acd_chakan_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- ==================== 分页查询（lpcenter/efficiency 16 端点） ====================
+         LIMIT #{limit} OFFSET #{offset} 走 MyBatis 预编译参数化，
+         GBase 8a / MySQL / SQLite 通用；非 SQLite 专有关键字。 -->
+
+    <!-- 人员日工作量 - 分页 -->
+    <select id="getCurGzlDataPage" resultType="com.example.demo.entity.CurGzlTableRy">
+        SELECT a.comname as comName, a.username as userName, a.usercode as userCode,
+               a.groups, a.groupscode as groupsCode,
+               max(a.tjtime) as maxTjTime,
+               sum(ck_jsl) as ckJsl, sum(ck_jsl_wcl) as ckJslWcl, sum(ck_wcl) as ckWcl,
+               sum(ds_tjl) as dsTjl, sum(ds_wcl) as dsWcl, sum(ds_zfl) as dsZfl,
+               sum(shougen) as shouGen, sum(hougen) as houGen, sum(tiaojie) as tiaoJie,
+               sum(ja) as ja, sum(zl) as zl
+        FROM acd_dangri_gzl_ry a
+        WHERE a.groups is not null
+          AND a.groupscode not in ('5101701','5101702','5101703')
+          AND a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+          <if test="comName != null and comName != ''">
+              AND a.comname like concat('%', #{comName}, '%')
+          </if>
+          <if test="groups != null and groups != ''">
+              AND a.groups like concat('%', #{groups}, '%')
+          </if>
+          <if test="userName != null and userName != ''">
+              AND a.username like concat('%', #{userName}, '%')
+          </if>
+        GROUP BY 1,2,3,4,5
+        ORDER BY comName desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countCurGzlData" resultType="java.lang.Long">
+        select count(*) from (
+            SELECT a.comname, a.username, a.usercode, a.groups, a.groupscode
+            FROM acd_dangri_gzl_ry a
+            WHERE a.groups is not null
+              AND a.groupscode not in ('5101701','5101702','5101703')
+              AND a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+              <if test="comName != null and comName != ''">
+                  AND a.comname like concat('%', #{comName}, '%')
+              </if>
+              <if test="groups != null and groups != ''">
+                  AND a.groups like concat('%', #{groups}, '%')
+              </if>
+              <if test="userName != null and userName != ''">
+                  AND a.username like concat('%', #{userName}, '%')
+              </if>
+            GROUP BY 1,2,3,4,5
+        ) t
+    </select>
+
+    <!-- 部门日工作量 - 分页 -->
+    <select id="getCurGzlDataBmPage" resultType="com.example.demo.entity.CurGzlTableBm">
+        SELECT a.comcode as comCode,
+        a.comname as comName,
+        a.tjdate as tjDate,
+        max(a.tjtime) as maxTjTime,
+        sum(ck_jsl) as ckJsl, sum(ck_jsl_wcl) as ckJslWcl, sum(ck_wcl) as ckWcl,
+        sum(ds_tjl) as dsTjl, sum(ds_wcl) as dsWcl, sum(ds_zfl) as dsZfl,
+        sum(shougen) as shouGen, sum(hougen) as houGen, sum(tiaojie) as tiaoJie,
+        sum(ja) as ja, sum(zl) as zl
+        FROM acd_dangri_gzl_bm a
+        WHERE a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+        <if test="comName != null and comName != ''">
+            AND a.comname like concat('%', #{comName}, '%')
+        </if>
+        GROUP BY 1,2,3
+        ORDER BY comName desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countCurGzlDataBm" resultType="java.lang.Long">
+        select count(*) from (
+            SELECT a.comcode, a.comname, a.tjdate
+            FROM acd_dangri_gzl_bm a
+            WHERE a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+            <if test="comName != null and comName != ''">
+                AND a.comname like concat('%', #{comName}, '%')
+            </if>
+            GROUP BY 1,2,3
+        ) t
+    </select>
+
+    <!-- 小组日工作量 - 分页 -->
+    <select id="getCurGzlDataGroupPage" resultType="com.example.demo.entity.CurGzlTableGroup">
+        SELECT a.comcode as comCode,
+        a.comname as comName,
+        a.groups as groups,
+        a.groupscode as groupsCode,
+        a.tjdate as tjDate,
+        max(a.tjtime) as maxTjTime,
+        sum(ck_jsl) as ckJsl, sum(ck_jsl_wcl) as ckJslWcl, sum(ck_wcl) as ckWcl,
+        sum(ds_tjl) as dsTjl, sum(ds_wcl) as dsWcl, sum(ds_zfl) as dsZfl,
+        sum(shougen) as shouGen, sum(hougen) as houGen, sum(tiaojie) as tiaoJie,
+        sum(ja) as ja, sum(zl) as zl
+        FROM acd_dangri_gzl_group a
+        WHERE a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+        AND a.groups is not null
+        AND a.groupscode not in ('5101701','5101702','5101703')
+        <if test="comName != null and comName != ''">
+            AND a.comname like concat('%', #{comName}, '%')
+        </if>
+        <if test="groups != null and groups != ''">
+            AND a.groups like concat('%', #{groups}, '%')
+        </if>
+        GROUP BY 1,2,3,4,5
+        ORDER BY comName desc, groupsCode asc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countCurGzlDataGroup" resultType="java.lang.Long">
+        select count(*) from (
+            SELECT a.comcode, a.comname, a.groups, a.groupscode, a.tjdate
+            FROM acd_dangri_gzl_group a
+            WHERE a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+            AND a.groups is not null
+            AND a.groupscode not in ('5101701','5101702','5101703')
+            <if test="comName != null and comName != ''">
+                AND a.comname like concat('%', #{comName}, '%')
+            </if>
+            <if test="groups != null and groups != ''">
+                AND a.groups like concat('%', #{groups}, '%')
+            </if>
+            GROUP BY 1,2,3,4,5
+        ) t
+    </select>
+
+    <!-- 人伤日工作量 - 分页 -->
+    <select id="getCurGzlDataRsPage" resultType="com.example.demo.entity.CurGzlTableRs">
+        SELECT a.comcode as comCode,
+        a.comname as comName,
+        a.tjdate as tjDate,
+        max(a.tjtime) as maxTjTime,
+        sum(shougen) as shouGen,
+        sum(hougen) as houGen,
+        sum(tiaojie_zhuyuan) as tiaojieZhuyuan,
+        sum(tiaojie_menzheng) as tiaojieMenzheng,
+        sum(jiean_zhuyuan) as jieanZhuyuan,
+        sum(jiean_mengzheng) as jieanMengzheng
+        FROM acd_dangri_gzl_rs a
+        WHERE a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+        <if test="comName != null and comName != ''">
+            AND a.comname like concat('%', #{comName}, '%')
+        </if>
+        GROUP BY 1,2,3
+        ORDER BY comName desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countCurGzlDataRs" resultType="java.lang.Long">
+        select count(*) from (
+            SELECT a.comcode, a.comname, a.tjdate
+            FROM acd_dangri_gzl_rs a
+            WHERE a.tjdate &gt;= #{startDate} AND a.tjdate &lt;= #{endDate}
+            <if test="comName != null and comName != ''">
+                AND a.comname like concat('%', #{comName}, '%')
+            </if>
+            GROUP BY 1,2,3
+        ) t
+    </select>
+
+    <!-- 周期-市公司 - 分页 -->
+    <select id="getZhouqiQsDataPage" resultType="com.example.demo.entity.AcdZhouqiQs">
+        select tjdate, tjdate as maxTjTime, comcode_sgs, comname_sgs,
+        chakan_zt, cuiding_zt, dingsun_zt, zhifu_zt,
+        zhouqi_zt, zhouqi_wyn, zhouqi_wys
+        from acd_zhouqi_qs
+        where 1 = 1
+        and tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by zhouqi_zt desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countZhouqiQs" resultType="java.lang.Long">
+        select count(*) from acd_zhouqi_qs
+        where 1 = 1
+        and tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 周期-部门 - 分页 -->
+    <select id="getZhouqiBmDataPage" resultType="com.example.demo.entity.AcdZhouqiBm">
+        select tjdate, tjdate as maxTjTime, comcode, comname,
+        zhouqi_zt, zhouqi_wyn, zhouqi_wys, chakan_zt, cuiding_zt, dingsun_zt, zhifu_zt
+        from acd_zhouqi_bm
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and comcode like '510199%'
+        and comcode not in ('51019928','51019926','51019911','51019907','51019944')
+        <if test="comname != null and comname != ''">
+            and comname like concat('%', #{comname}, '%')
+        </if>
+        order by zhouqi_zt desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countZhouqiBm" resultType="java.lang.Long">
+        select count(*) from acd_zhouqi_bm
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and comcode like '510199%'
+        and comcode not in ('51019928','51019926','51019911','51019907','51019944')
+        <if test="comname != null and comname != ''">
+            and comname like concat('%', #{comname}, '%')
+        </if>
+    </select>
+
+    <!-- 综合赔付率-客户群 - 分页 -->
+    <select id="getZhpflKhqDataPage" resultType="com.example.demo.entity.AcdZhpflKhq">
+        select tjdate, tjdate as maxTjTime, comcode_sgs, comname_sgs, khq, riskcode,
+        jbf, pfcb, fy, glfy, cblr, zhcbl, zhfyl, zhpfl,
+        jbf_qn, pfcb_qn, fy_qn, glfy_qn, cblr_qn, zhcbl_qn, zhfyl_qn, zhpfl_qn,
+        zhcbl_tb, zhfyl_tb, zhpfl_tb
+        from acd_zhpfl_khq
+        where 1 = 1
+        and tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by zhpfl desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countZhpflKhq" resultType="java.lang.Long">
+        select count(*) from acd_zhpfl_khq
+        where 1 = 1
+        and tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 车险结案率-部门 - 分页 -->
+    <select id="getPacllBmDataPage" resultType="com.example.demo.entity.AcdPacllBm">
+        select case when a.comname ='理赔中心在线理赔分部' then 1
+        when a.comname ='理赔中心线下理赔分部' then 2
+        when a.comname ='非成都查勘-非人' then 3
+        when a.comname ='非成都查勘-涉人' then 4
+        when a.comname ='理赔中心新能源/网约车分部' then 5
+        when a.comname ='理赔中心商用车分部' then 6
+        when a.comname ='理赔中心人伤分部' then 7
+        when a.comname ='工程机械' then 8
+        when a.comname ='电梯' then 9
+        when a.comname ='中心整体' then 10
+        else 99 end idd,
+        a.*, a.tjdate as maxTjTime,
+        a.wjl-a.wjl_fr as rswj,
+        round(a.yjl/a.xzl,4) lajal,
+        (a.wjl-a.wjl_fr)/a.wjl as rs_zb
+        from acd_pacll_bm a
+        where a.tjdate = #{tjDate}
+        and a.comname is not null
+        and a.comcode not in ('51019944','51019907')
+        and a.comname &lt;&gt; '个非'
+        <if test="comname != null and comname != ''">
+            and a.comname like concat('%', #{comname}, '%')
+        </if>
+        order by idd
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countPacllBm" resultType="java.lang.Long">
+        select count(*) from acd_pacll_bm a
+        where a.tjdate = #{tjDate}
+        and a.comname is not null
+        and a.comcode not in ('51019944','51019907')
+        and a.comname &lt;&gt; '个非'
+        <if test="comname != null and comname != ''">
+            and a.comname like concat('%', #{comname}, '%')
+        </if>
+    </select>
+
+    <!-- 车险结案率-小组 - 分页 -->
+    <select id="getPacllXzDataPage" resultType="com.example.demo.entity.AcdPacllXz">
+        select distinct b.comname, a.*, a.tjdate as maxTjTime,
+        round(a.wjl_rs/wjl,4) rs_pp
+        from acd_pacll_xz a, acd_ryzd b
+        where a.groupscode = b.groupscode
+        AND a.tjdate = #{tjDate}
+        <if test="comname != null and comname != ''">
+            and b.comname like concat('%', #{comname}, '%')
+        </if>
+        <if test="groups != null and groups != ''">
+            and b.groups like concat('%', #{groups}, '%')
+        </if>
+        order by b.groupscode asc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countPacllXz" resultType="java.lang.Long">
+        select count(distinct b.comname || a.groupscode) from acd_pacll_xz a, acd_ryzd b
+        where a.groupscode = b.groupscode
+        AND a.tjdate = #{tjDate}
+        <if test="comname != null and comname != ''">
+            and b.comname like concat('%', #{comname}, '%')
+        </if>
+        <if test="groups != null and groups != ''">
+            and b.groups like concat('%', #{groups}, '%')
+        </if>
+    </select>
+
+    <!-- 车险结案率-人员 - 分页 -->
+    <select id="getPacllRyDataPage" resultType="com.example.demo.entity.AcdPacllRy">
+        select case when a.bm ='理赔中心在线理赔分部' then 1
+        when a.bm ='理赔中心线下理赔分部' then 2
+        when a.bm ='非成都查勘-非人' then 3
+        when a.bm ='非成都查勘-涉人' then 4
+        when a.bm ='理赔中心新能源/网约车分部' then 5
+        when a.bm ='理赔中心商用车分部' then 6
+        when a.bm ='理赔中心人伤分部' then 7
+        when a.bm ='工程机械' then 8
+        when a.bm ='电梯' then 9
+        when a.bm ='中心整体' then 10
+        else 99 end idd,
+        a.*, a.tjdate as maxTjTime,
+        round(a.yjajl/a.xzajl,4) lajal
+        from acd_pacll_ry a
+        where a.tjdate= #{tjDate}
+        and a.bm not like '%人伤%'
+        and a.bm not like '%理算%'
+        and a.bm not like '%科技%'
+        and a.bm not like '%管理%'
+        and groups is not null
+        and a.usercode not in ('25332446')
+        <if test="bm != null and bm != ''">
+            and a.bm like concat('%', #{bm}, '%')
+        </if>
+        <if test="groups != null and groups != ''">
+            and a.groups like concat('%', #{groups}, '%')
+        </if>
+        <if test="username != null and username != ''">
+            and a.username like concat('%', #{username}, '%')
+        </if>
+        order by idd, groups
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countPacllRy" resultType="java.lang.Long">
+        select count(*) from acd_pacll_ry a
+        where a.tjdate= #{tjDate}
+        and a.bm not like '%人伤%'
+        and a.bm not like '%理算%'
+        and a.bm not like '%科技%'
+        and a.bm not like '%管理%'
+        and groups is not null
+        and a.usercode not in ('25332446')
+        <if test="bm != null and bm != ''">
+            and a.bm like concat('%', #{bm}, '%')
+        </if>
+        <if test="groups != null and groups != ''">
+            and a.groups like concat('%', #{groups}, '%')
+        </if>
+        <if test="username != null and username != ''">
+            and a.username like concat('%', #{username}, '%')
+        </if>
+    </select>
+
+    <!-- 事故年赔付率-支公司 - 分页 -->
+    <select id="getPflsgnZgsDataPage" resultType="com.example.demo.entity.AcdPflsgnZgs">
+        select *, tjdate as maxTjTime from acd_pflsgn_zgs
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comcode_sgs, comcode
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countPflsgnZgs" resultType="java.lang.Long">
+        select count(*) from acd_pflsgn_zgs
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 事故年赔付率-客户群 - 分页 -->
+    <select id="getPflsgnKhqDataPage" resultType="com.example.demo.entity.AcdPflsgnKhq">
+        select *, tjdate as maxTjTime from acd_pflsgn_khq
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comcode_sgs
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countPflsgnKhq" resultType="java.lang.Long">
+        select count(*) from acd_pflsgn_khq
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 事故年赔付率-新能源 - 分页 -->
+    <select id="getPflsgnXnyDataPage" resultType="com.example.demo.entity.AcdPflsgnXny">
+        select *, tjdate as maxTjTime from acd_pflsgn_xny
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comcode_sgs, xnyflag
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countPflsgnXny" resultType="java.lang.Long">
+        select count(*) from acd_pflsgn_xny
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 案均赔款-支公司（车险）- 分页 -->
+    <select id="getAnjunCxZgsDataPage" resultType="com.example.demo.entity.AcdAnjunCxZgs">
+        select *, tjdate as maxTjTime from acd_anjun_cx_zgs
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comcode_sgs, comcode
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countAnjunCxZgs" resultType="java.lang.Long">
+        select count(*) from acd_anjun_cx_zgs
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 案均赔款-客户群（车险）- 分页 -->
+    <select id="getAnjunCxKhqDataPage" resultType="com.example.demo.entity.AcdAnjunCxKhq">
+        select *, tjdate as maxTjTime from acd_anjun_cx_khq
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comcode_sgs, khq
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countAnjunCxKhq" resultType="java.lang.Long">
+        select count(*) from acd_anjun_cx_khq
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 案均赔款-新能源（车险）- 分页 -->
+    <select id="getAnjunCxXnyDataPage" resultType="com.example.demo.entity.AcdAnjunCxXny">
+        select *, tjdate as maxTjTime from acd_anjun_cx_xny
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comcode_sgs, xnyflag
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countAnjunCxXny" resultType="java.lang.Long">
+        select count(*) from acd_anjun_cx_xny
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
     </select>
 
 </mapper>

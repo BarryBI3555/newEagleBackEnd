@@ -49,6 +49,13 @@ public class GlobalExceptionHandler {
         return Result.error("数据库访问错误，请稍后重试");
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        logger.error("非法参数: {}", e.getMessage());
+        return Result.error(e.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<String> handleException(Exception e) {

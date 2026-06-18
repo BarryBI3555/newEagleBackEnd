@@ -21,4 +21,13 @@ public class Result<T> {
     public static <T> Result<T> error(String msg) {
         return new Result<>(500, msg, null);
     }
+
+    /**
+     * 异常友好型 error：message 为 null 时降级为异常类名，防止前端收到空消息。
+     * 调用方需已在 Controller 层自行打印 log.error(prefix, e) 记录完整堆栈。
+     */
+    public static <T> Result<T> error(String prefix, Throwable e) {
+        String msg = prefix + ": " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+        return new Result<>(500, msg, null);
+    }
 }

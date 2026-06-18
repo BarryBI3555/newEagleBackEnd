@@ -30,8 +30,8 @@ public class GroupController {
             logger.info("返回 {} 条小组记录", groups.size());
             return Result.success(groups);
         } catch (Exception e) {
-            logger.error("获取小组列表失败: {}", e.getMessage(), e);
-            return Result.error("获取小组列表失败: " + e.getMessage());
+            logger.error("获取小组列表失败", e);
+            return Result.error("获取小组列表失败", e);
         }
     }
 }
