@@ -54,7 +54,7 @@ public class LocationController {
             return Result.error("日期格式错误，应为 yyyy-MM-dd");
         } catch (Exception e) {
             log.error("获取最新位置失败", e);
-            return Result.error("获取最新位置失败: " + e.getMessage(), e);
+            return Result.error("获取最新位置失败", e);
         }
     }
 
@@ -71,7 +71,7 @@ public class LocationController {
             return Result.error("日期格式错误，应为 yyyy-MM-dd");
         } catch (Exception e) {
             log.error("获取用户轨迹失败", e);
-            return Result.error("获取用户轨迹失败: " + e.getMessage(), e);
+            return Result.error("获取用户轨迹失败", e);
         }
     }
 
@@ -93,7 +93,7 @@ public class LocationController {
             return Result.error("日期格式错误，应为 yyyy-MM-dd");
         } catch (Exception e) {
             log.error("获取地址解析进度失败", e);
-            return Result.error("获取地址解析进度失败: " + e.getMessage(), e);
+            return Result.error("获取地址解析进度失败", e);
         }
     }
 

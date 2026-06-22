@@ -63,16 +63,10 @@
         FROM ${tableName}
     </select>
 
-    <!-- 通用：根据表名 + 业务标志取最大统计日期
-         ${tableName} / ${flagColumn} 仍是字符串拼接。
-         安全模型：TableNames 白名单 + Service 层 flagColumn/flagValue 白名单。 -->
-    <select id="getMaxTjDateByTableAndFlag" resultType="java.lang.String">
-        SELECT MAX(tjdate)
-        FROM ${tableName}
-        WHERE ${flagColumn} = #{flagValue}
-    </select>
-
-    <!-- 专用重载：列名固定 jaflag，按 jaflag 值过滤后取 MAX(tjdate) -->
+    <!-- 通用：根据表名 + jaflag 取最大统计日期
+         ${tableName} 是字符串拼接（MyBatis 不支持 #{} 传 SQL 标识符）。
+         安全模型：com.example.demo.util.TableNames 白名单在 Service 层拦截非法表名。
+         列名硬编码为 jaflag，避免列名注入。 -->
     <select id="getMaxTjDateByTableAndFlag" resultType="java.lang.String">
         SELECT MAX(tjdate)
         FROM ${tableName}
@@ -220,31 +214,6 @@
 
     <!-- ==================== 新增表：车险结案率-部门 ==================== -->
     <select id="getPacllBmData" resultType="com.example.demo.entity.AcdPacllBm">
-        <!-- select
-        tjdate,
-        tjdate as maxTjTime,
-        idd,
-        comcode,
-        comname,
-        xzl,
-        yjl,
-        wjl,
-        wjl_qn,
-        pacll,
-        wjxs,
-        rjwj,
-        wjl_fr,
-        wjxs_fr,
-        rjwj_fr,
-        wjxs_rs,
-        wjl - wjl_fr as rswj,
-        round(cast(yjl as real) / cast(xzl as real), 4) as lajal,
-        cast(wjl - wjl_fr as real) / cast(wjl as real) as rs_zb
-        from acd_pacll_bm
-        where tjdate = #{tjDate}
-        and comname is not null
-        and comcode not in ('51019944','51019907')
-        and comname &lt;&gt; '个非' -->
 
         select case when a.comname ='理赔中心在线理赔分部' then 1 
         when a.comname ='理赔中心线下理赔分部' then 2
@@ -294,32 +263,7 @@
 
     <!-- ==================== 新增表：车险结案率-人员 ==================== -->
     <select id="getPacllRyData" resultType="com.example.demo.entity.AcdPacllRy">
-        <!-- select
-        tjdate,
-        tjdate as maxTjTime,
-        idd,
-        bm,
-        username,
-        usercode,
-        xzajl,
-        yjajl,
-        wjajl,
-        pacll,
-        wjclxs,
-        bsrswjcl,
-        bsrswjclxs,
-        grid,
-        groups,
-        round(cast(yjajl as real) / cast(xzajl as real), 4) as lajal
-        from acd_pacll_ry
-        where tjdate = #{tjDate}
-        and bm not like '%总经理%'
-        and bm not like '%经理%'
-        and bm not like '%科技%'
-        and bm not like '%重客%'
-        and groups is not null
-        and usercode not in ('25332446') -->
-
+    
         select case when a.bm ='理赔中心在线理赔分部' then 1
         when a.bm ='理赔中心线下理赔分部' then 2
         when a.bm ='非成都查勘-非人' then 3
@@ -1150,7 +1094,7 @@
         </if>
         order by comcode_sgs, khq
         limit #{limit} offset #{offset}
-    </select>
+    </select> 
     <select id="countAnjunCxKhq" resultType="java.lang.Long">
         select count(*) from acd_anjun_cx_khq
         where tjdate = #{tjDate}

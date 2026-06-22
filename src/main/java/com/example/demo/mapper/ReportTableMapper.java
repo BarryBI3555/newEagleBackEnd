@@ -35,16 +35,9 @@ public interface ReportTableMapper{
     String getMaxTjDateByTable(@Param("tableName") String tableName);
 
     /**
-     * 按表名 + 业务标志（如 jaflag）取最大统计日期。
-     * 用于同一张表被多个报表共用、按字段区分的场合（如 acd_rs_gzl_year）。
-     */
-    String getMaxTjDateByTableAndFlag(@Param("tableName") String tableName,
-                                      @Param("flagColumn") String flagColumn,
-                                      @Param("flagValue") String flagValue);
-
-    /**
-     * 专用重载：列名固定为 jaflag，按 jaflag 值过滤后取 MAX(tjdate)。
-     * 用于 acd_rs_gzl_year 等共享表。
+     * 按表名 + 业务标志（jaflag 值）取最大统计日期。
+     * 用于同一张表被多个报表共用、按 jaflag 字段区分的场合（如 acd_rs_gzl_year）。
+     * XML 中硬编码列名 jaflag，传参只需要表名 + jaflag 值。
      */
     String getMaxTjDateByTableAndFlag(@Param("tableName") String tableName,
                                       @Param("jaflag") String jaflag);

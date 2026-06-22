@@ -54,7 +54,11 @@ public class ReportTableServiceImpl implements ReportTableService {
         if (flagValue == null || flagValue.isEmpty()) {
             throw new IllegalArgumentException("flagValue 不能为空");
         }
-        return reportTableMapper.getMaxTjDateByTableAndFlag(tableName, flagColumn, flagValue);
+        // mapper 层只支持 jaflag 列的专用查询；其它列名不在本接口范围内，统一拒绝
+        if (!"jaflag".equals(flagColumn)) {
+            throw new IllegalArgumentException("当前仅支持 flagColumn=jaflag，收到：" + flagColumn);
+        }
+        return reportTableMapper.getMaxTjDateByTableAndFlag(tableName, flagValue);
     }
 
     @Override
