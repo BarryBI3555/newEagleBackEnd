@@ -52,7 +52,13 @@ public final class TableNames {
             "acd_lisuan_year",
             "acd_rs_gzl_year",
             // 月度每日
-            "acd_chakan_month"
+            "acd_chakan_month",
+            "acd_ck_dswc_month",
+            "acd_dingsun_tjl_month",
+            "acd_dingsun_wcl_month",
+            "acd_dingsun_zfl_month",
+            "acd_lisuan_month",
+            "acd_rs_gzl_month"
         ))
     );
 

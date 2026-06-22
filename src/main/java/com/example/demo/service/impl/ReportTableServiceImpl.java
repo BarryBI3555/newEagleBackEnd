@@ -24,6 +24,12 @@ import com.example.demo.entity.AcdDingsunZflYear;
 import com.example.demo.entity.AcdLisuanYear;
 import com.example.demo.entity.AcdRsGzlYear;
 import com.example.demo.entity.AcdChakanMonth;
+import com.example.demo.entity.AcdCkDswcMonth;
+import com.example.demo.entity.AcdDingsunTjlMonth;
+import com.example.demo.entity.AcdDingsunWclMonth;
+import com.example.demo.entity.AcdDingsunZflMonth;
+import com.example.demo.entity.AcdRsGzlMonth;
+import com.example.demo.entity.AcdLisuanMonth;
 import com.example.demo.entity.PageResult;
 import com.example.demo.mapper.ReportTableMapper;
 import com.example.demo.service.ReportTableService;
@@ -203,6 +209,41 @@ public class ReportTableServiceImpl implements ReportTableService {
         return reportTableMapper.getChakanMonthData(tjDate, comnameSgs);
     }
 
+    @Override
+    public List<AcdCkDswcMonth> getCkDswcMonthData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getCkDswcMonthData(tjDate, comnameSgs);
+    }
+
+    @Override
+    public List<AcdDingsunTjlMonth> getDingsunTjlMonthData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getDingsunTjlMonthData(tjDate, comnameSgs);
+    }
+
+    @Override
+    public List<AcdDingsunWclMonth> getDingsunWclMonthData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getDingsunWclMonthData(tjDate, comnameSgs);
+    }
+
+    @Override
+    public List<AcdDingsunZflMonth> getDingsunZflMonthData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getDingsunZflMonthData(tjDate, comnameSgs);
+    }
+
+    @Override
+    public List<AcdRsGzlMonth> getRsGzlMonthData(String tjDate) {
+        return reportTableMapper.getRsGzlMonthData(tjDate);
+    }
+
+    @Override
+    public List<AcdRsGzlMonth> getRsTjlMonthData(String tjDate) {
+        return reportTableMapper.getRsTjlMonthData(tjDate);
+    }
+
+    @Override
+    public List<AcdLisuanMonth> getLisuanMonthData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getLisuanMonthData(tjDate, comnameSgs);
+    }
+
     // ==================== 分页查询（laoxiao 9 + chakan_month） ====================
 
     private static int normalizeCurrent(int current) {
@@ -313,6 +354,83 @@ public class ReportTableServiceImpl implements ReportTableService {
         java.util.List<AcdChakanMonth> records = total == 0
                 ? java.util.Collections.emptyList()
                 : reportTableMapper.getChakanMonthDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public PageResult<AcdCkDswcMonth> getCkDswcMonthDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countCkDswcMonth(tjDate, comnameSgs);
+        java.util.List<AcdCkDswcMonth> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getCkDswcMonthDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public PageResult<AcdDingsunTjlMonth> getDingsunTjlMonthDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countDingsunTjlMonth(tjDate, comnameSgs);
+        java.util.List<AcdDingsunTjlMonth> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getDingsunTjlMonthDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public PageResult<AcdDingsunWclMonth> getDingsunWclMonthDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countDingsunWclMonth(tjDate, comnameSgs);
+        java.util.List<AcdDingsunWclMonth> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getDingsunWclMonthDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public PageResult<AcdDingsunZflMonth> getDingsunZflMonthDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countDingsunZflMonth(tjDate, comnameSgs);
+        java.util.List<AcdDingsunZflMonth> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getDingsunZflMonthDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public PageResult<AcdRsGzlMonth> getRsGzlMonthDataPage(String tjDate, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countRsGzlMonth(tjDate);
+        java.util.List<AcdRsGzlMonth> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getRsGzlMonthDataPage(tjDate, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public PageResult<AcdRsGzlMonth> getRsTjlMonthDataPage(String tjDate, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countRsTjlMonth(tjDate);
+        java.util.List<AcdRsGzlMonth> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getRsTjlMonthDataPage(tjDate, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public PageResult<AcdLisuanMonth> getLisuanMonthDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countLisuanMonth(tjDate, comnameSgs);
+        java.util.List<AcdLisuanMonth> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getLisuanMonthDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
         return new PageResult<>(records, total, current, size);
     }
 

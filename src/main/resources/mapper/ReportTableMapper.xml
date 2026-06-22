@@ -474,6 +474,19 @@
         order by hj desc
     </select>
 
+    <!-- ==================== 查勘量+定损完成-月度每日 ==================== -->
+    <select id="getCkDswcMonthData" resultType="com.example.demo.entity.AcdCkDswcMonth">
+        select * , tjdate as maxTjTime
+        from acd_ck_dswc_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+
     <!-- ==================== 分页查询（laoxiao 9 + chakan_month） ====================
          LIMIT #{limit} OFFSET #{offset} 走 MyBatis 预编译参数化，
          GBase 8a / MySQL / SQLite 通用；非 SQLite 专有关键字。 -->
@@ -656,6 +669,201 @@
         select count(*) from acd_chakan_month
         where 1 = 1
         and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 查勘量+定损完成-月度每日 - 分页 -->
+    <select id="getCkDswcMonthDataPage" resultType="com.example.demo.entity.AcdCkDswcMonth">
+        select * , tjdate as maxTjTime
+        from acd_ck_dswc_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countCkDswcMonth" resultType="java.lang.Long">
+        select count(*) from acd_ck_dswc_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- ==================== 定损提交量-月度每日 ==================== -->
+    <select id="getDingsunTjlMonthData" resultType="com.example.demo.entity.AcdDingsunTjlMonth">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_tjl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+    <select id="getDingsunTjlMonthDataPage" resultType="com.example.demo.entity.AcdDingsunTjlMonth">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_tjl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countDingsunTjlMonth" resultType="java.lang.Long">
+        select count(*) from acd_dingsun_tjl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- ==================== 定损完成量-月度每日 ==================== -->
+    <select id="getDingsunWclMonthData" resultType="com.example.demo.entity.AcdDingsunWclMonth">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_wcl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+    <select id="getDingsunWclMonthDataPage" resultType="com.example.demo.entity.AcdDingsunWclMonth">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_wcl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countDingsunWclMonth" resultType="java.lang.Long">
+        select count(*) from acd_dingsun_wcl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- ==================== 定损支付量-月度每日 ==================== -->
+    <select id="getDingsunZflMonthData" resultType="com.example.demo.entity.AcdDingsunZflMonth">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_zfl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+    <select id="getDingsunZflMonthDataPage" resultType="com.example.demo.entity.AcdDingsunZflMonth">
+        select * , tjdate as maxTjTime
+        from acd_dingsun_zfl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countDingsunZflMonth" resultType="java.lang.Long">
+        select count(*) from acd_dingsun_zfl_month
+        where 1 = 1
+        and tjdate= #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- ==================== 人伤跟踪量-月度每日（jaflag=后续跟踪） ==================== -->
+    <select id="getRsGzlMonthData" resultType="com.example.demo.entity.AcdRsGzlMonth">
+        select *, tjdate as maxTjTime
+        from acd_rs_gzl_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and jaflag = '后续跟踪'
+        order by hj desc
+    </select>
+    <select id="getRsGzlMonthDataPage" resultType="com.example.demo.entity.AcdRsGzlMonth">
+        select *, tjdate as maxTjTime
+        from acd_rs_gzl_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and jaflag = '后续跟踪'
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countRsGzlMonth" resultType="java.lang.Long">
+        select count(*) from acd_rs_gzl_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and jaflag = '后续跟踪'
+    </select>
+
+    <!-- ==================== 人伤调解量-月度每日（jaflag=人伤调解） ==================== -->
+    <select id="getRsTjlMonthData" resultType="com.example.demo.entity.AcdRsGzlMonth">
+        select *, tjdate as maxTjTime
+        from acd_rs_gzl_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and jaflag = '人伤调解'
+        order by hj desc
+    </select>
+    <select id="getRsTjlMonthDataPage" resultType="com.example.demo.entity.AcdRsGzlMonth">
+        select *, tjdate as maxTjTime
+        from acd_rs_gzl_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and jaflag = '人伤调解'
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countRsTjlMonth" resultType="java.lang.Long">
+        select count(*) from acd_rs_gzl_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        and jaflag = '人伤调解'
+    </select>
+
+    <!-- ==================== 理算量-月度每日 ==================== -->
+    <select id="getLisuanMonthData" resultType="com.example.demo.entity.AcdLisuanMonth">
+        select *, tjdate as maxTjTime
+        from acd_lisuan_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+    </select>
+    <select id="getLisuanMonthDataPage" resultType="com.example.demo.entity.AcdLisuanMonth">
+        select *, tjdate as maxTjTime
+        from acd_lisuan_month
+        where 1 = 1
+        and tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countLisuanMonth" resultType="java.lang.Long">
+        select count(*) from acd_lisuan_month
+        where 1 = 1
+        and tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
         </if>

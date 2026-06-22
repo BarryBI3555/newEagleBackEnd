@@ -24,6 +24,12 @@ import com.example.demo.entity.AcdDingsunZflYear;
 import com.example.demo.entity.AcdLisuanYear;
 import com.example.demo.entity.AcdRsGzlYear;
 import com.example.demo.entity.AcdChakanMonth;
+import com.example.demo.entity.AcdCkDswcMonth;
+import com.example.demo.entity.AcdDingsunTjlMonth;
+import com.example.demo.entity.AcdDingsunWclMonth;
+import com.example.demo.entity.AcdDingsunZflMonth;
+import com.example.demo.entity.AcdRsGzlMonth;
+import com.example.demo.entity.AcdLisuanMonth;
 import com.example.demo.entity.PageResult;
 import com.example.demo.entity.Result;
 import com.example.demo.service.ReportTableService;
@@ -569,6 +575,76 @@ public class ReportTableController {
         }
     }
 
+    /** 查勘量+定损完成-月度每日 */
+    @GetMapping("/ck_dswc_month/list")
+    public Result<List<AcdCkDswcMonth>> getCkDswcMonthList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_ck_dswc_month");
+            }
+            List<AcdCkDswcMonth> data = reportTableService.getCkDswcMonthData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取查勘量+定损完成-月度每日失败", e);
+            return Result.error("获取查勘量+定损完成-月度每日失败", e);
+        }
+    }
+
+    /** 人伤跟踪量-月度每日 */
+    @GetMapping("/rs_gzl_month/list")
+    public Result<List<AcdRsGzlMonth>> getRsGzlMonthList(
+            @RequestParam(required = false) String tjDate
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_rs_gzl_month");
+            }
+            List<AcdRsGzlMonth> data = reportTableService.getRsGzlMonthData(tjDate);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取人伤跟踪量-月度每日失败", e);
+            return Result.error("获取人伤跟踪量-月度每日失败", e);
+        }
+    }
+
+    /** 人伤调解量-月度每日 */
+    @GetMapping("/rs_tjl_month/list")
+    public Result<List<AcdRsGzlMonth>> getRsTjlMonthList(
+            @RequestParam(required = false) String tjDate
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_rs_gzl_month");
+            }
+            List<AcdRsGzlMonth> data = reportTableService.getRsTjlMonthData(tjDate);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取人伤调解量-月度每日失败", e);
+            return Result.error("获取人伤调解量-月度每日失败", e);
+        }
+    }
+
+    /** 理算量-月度每日 */
+    @GetMapping("/lisuan_month/list")
+    public Result<List<AcdLisuanMonth>> getLisuanMonthList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_lisuan_month");
+            }
+            List<AcdLisuanMonth> data = reportTableService.getLisuanMonthData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取理算量-月度每日失败", e);
+            return Result.error("获取理算量-月度每日失败", e);
+        }
+    }
+
     // ==================== 分页端点（laoxiao 9 + chakan_month） ====================
     // 旧 /list 端点保持不动；新 /page 端点带 current/size 参数并返回 PageResult<T>。
 
@@ -769,6 +845,213 @@ public class ReportTableController {
         } catch (Exception e) {
             log.error("获取查勘量-月度每日分页失败", e);
             return Result.error("获取查勘量-月度每日分页失败", e);
+        }
+    }
+
+    /** 查勘量+定损完成-月度每日 - 分页 */
+    @GetMapping("/ck_dswc_month/page")
+    public Result<PageResult<AcdCkDswcMonth>> getCkDswcMonthPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_ck_dswc_month");
+            }
+            return Result.success(reportTableService.getCkDswcMonthDataPage(
+                    tjDate, comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取查勘量+定损完成-月度每日分页失败", e);
+            return Result.error("获取查勘量+定损完成-月度每日分页失败", e);
+        }
+    }
+
+    /** 定损提交量-月度每日 */
+    @GetMapping("/dingsun_tjl_month/list")
+    public Result<List<AcdDingsunTjlMonth>> getDingsunTjlMonthList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_tjl_month");
+            }
+            List<AcdDingsunTjlMonth> data = reportTableService.getDingsunTjlMonthData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取定损提交量-月度每日失败", e);
+            return Result.error("获取定损提交量-月度每日失败", e);
+        }
+    }
+
+    /** 定损完成量-月度每日 */
+    @GetMapping("/dingsun_wcl_month/list")
+    public Result<List<AcdDingsunWclMonth>> getDingsunWclMonthList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_wcl_month");
+            }
+            List<AcdDingsunWclMonth> data = reportTableService.getDingsunWclMonthData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取定损完成量-月度每日失败", e);
+            return Result.error("获取定损完成量-月度每日失败", e);
+        }
+    }
+
+    /** 定损支付量-月度每日 */
+    @GetMapping("/dingsun_zfl_month/list")
+    public Result<List<AcdDingsunZflMonth>> getDingsunZflMonthList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_zfl_month");
+            }
+            List<AcdDingsunZflMonth> data = reportTableService.getDingsunZflMonthData(tjDate, comnameSgs);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取定损支付量-月度每日失败", e);
+            return Result.error("获取定损支付量-月度每日失败", e);
+        }
+    }
+
+    /** 定损提交量-月度每日 - 分页 */
+    @GetMapping("/dingsun_tjl_month/page")
+    public Result<PageResult<AcdDingsunTjlMonth>> getDingsunTjlMonthPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_tjl_month");
+            }
+            return Result.success(reportTableService.getDingsunTjlMonthDataPage(
+                    tjDate, comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取定损提交量-月度每日分页失败", e);
+            return Result.error("获取定损提交量-月度每日分页失败", e);
+        }
+    }
+
+    /** 定损完成量-月度每日 - 分页 */
+    @GetMapping("/dingsun_wcl_month/page")
+    public Result<PageResult<AcdDingsunWclMonth>> getDingsunWclMonthPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_wcl_month");
+            }
+            return Result.success(reportTableService.getDingsunWclMonthDataPage(
+                    tjDate, comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取定损完成量-月度每日分页失败", e);
+            return Result.error("获取定损完成量-月度每日分页失败", e);
+        }
+    }
+
+    /** 定损支付量-月度每日 - 分页 */
+    @GetMapping("/dingsun_zfl_month/page")
+    public Result<PageResult<AcdDingsunZflMonth>> getDingsunZflMonthPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_dingsun_zfl_month");
+            }
+            return Result.success(reportTableService.getDingsunZflMonthDataPage(
+                    tjDate, comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取定损支付量-月度每日分页失败", e);
+            return Result.error("获取定损支付量-月度每日分页失败", e);
+        }
+    }
+
+    /** 人伤跟踪量-月度每日 - 分页 */
+    @GetMapping("/rs_gzl_month/page")
+    public Result<PageResult<AcdRsGzlMonth>> getRsGzlMonthPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_rs_gzl_month");
+            }
+            return Result.success(reportTableService.getRsGzlMonthDataPage(
+                    tjDate,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取人伤跟踪量-月度每日分页失败", e);
+            return Result.error("获取人伤跟踪量-月度每日分页失败", e);
+        }
+    }
+
+    /** 人伤调解量-月度每日 - 分页 */
+    @GetMapping("/rs_tjl_month/page")
+    public Result<PageResult<AcdRsGzlMonth>> getRsTjlMonthPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_rs_gzl_month");
+            }
+            return Result.success(reportTableService.getRsTjlMonthDataPage(
+                    tjDate,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取人伤调解量-月度每日分页失败", e);
+            return Result.error("获取人伤调解量-月度每日分页失败", e);
+        }
+    }
+
+    /** 理算量-月度每日 - 分页 */
+    @GetMapping("/lisuan_month/page")
+    public Result<PageResult<AcdLisuanMonth>> getLisuanMonthPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_lisuan_month");
+            }
+            return Result.success(reportTableService.getLisuanMonthDataPage(
+                    tjDate,
+                    comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取理算量-月度每日分页失败", e);
+            return Result.error("获取理算量-月度每日分页失败", e);
         }
     }
 

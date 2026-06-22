@@ -24,6 +24,12 @@ import com.example.demo.entity.AcdDingsunZflYear;
 import com.example.demo.entity.AcdLisuanYear;
 import com.example.demo.entity.AcdRsGzlYear;
 import com.example.demo.entity.AcdChakanMonth;
+import com.example.demo.entity.AcdCkDswcMonth;
+import com.example.demo.entity.AcdDingsunTjlMonth;
+import com.example.demo.entity.AcdDingsunWclMonth;
+import com.example.demo.entity.AcdDingsunZflMonth;
+import com.example.demo.entity.AcdRsGzlMonth;
+import com.example.demo.entity.AcdLisuanMonth;
 import com.example.demo.entity.PageResult;
 
 import java.util.List;
@@ -129,6 +135,27 @@ public interface ReportTableService {
     /** 查勘量-月度每日 */
     List<AcdChakanMonth> getChakanMonthData(String tjDate, String comnameSgs);
 
+    /** 查勘量+定损完成-月度每日 */
+    List<AcdCkDswcMonth> getCkDswcMonthData(String tjDate, String comnameSgs);
+
+    /** 定损提交量-月度每日 */
+    List<AcdDingsunTjlMonth> getDingsunTjlMonthData(String tjDate, String comnameSgs);
+
+    /** 定损完成量-月度每日 */
+    List<AcdDingsunWclMonth> getDingsunWclMonthData(String tjDate, String comnameSgs);
+
+    /** 定损支付量-月度每日 */
+    List<AcdDingsunZflMonth> getDingsunZflMonthData(String tjDate, String comnameSgs);
+
+    /** 人伤跟踪量-月度每日 */
+    List<AcdRsGzlMonth> getRsGzlMonthData(String tjDate);
+
+    /** 人伤调解量-月度每日 */
+    List<AcdRsGzlMonth> getRsTjlMonthData(String tjDate);
+
+    /** 理算量-月度每日 */
+    List<AcdLisuanMonth> getLisuanMonthData(String tjDate, String comnameSgs);
+
     // ==================== 分页查询（laoxiao 9 + chakan_month） ====================
 
     /** 查勘量-年度每月 - 分页 */
@@ -157,6 +184,27 @@ public interface ReportTableService {
 
     /** 查勘量-月度每日 - 分页 */
     PageResult<AcdChakanMonth> getChakanMonthDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 查勘量+定损完成-月度每日 - 分页 */
+    PageResult<AcdCkDswcMonth> getCkDswcMonthDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 定损提交量-月度每日 - 分页 */
+    PageResult<AcdDingsunTjlMonth> getDingsunTjlMonthDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 定损完成量-月度每日 - 分页 */
+    PageResult<AcdDingsunWclMonth> getDingsunWclMonthDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 定损支付量-月度每日 - 分页 */
+    PageResult<AcdDingsunZflMonth> getDingsunZflMonthDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 人伤跟踪量-月度每日 - 分页 */
+    PageResult<AcdRsGzlMonth> getRsGzlMonthDataPage(String tjDate, int current, int size);
+
+    /** 人伤调解量-月度每日 - 分页 */
+    PageResult<AcdRsGzlMonth> getRsTjlMonthDataPage(String tjDate, int current, int size);
+
+    /** 理算量-月度每日 - 分页 */
+    PageResult<AcdLisuanMonth> getLisuanMonthDataPage(String tjDate, String comnameSgs, int current, int size);
 
     // ==================== 分页查询（lpcenter/efficiency 16 端点） ====================
 

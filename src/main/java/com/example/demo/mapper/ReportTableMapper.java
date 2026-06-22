@@ -24,6 +24,12 @@ import com.example.demo.entity.AcdDingsunZflYear;
 import com.example.demo.entity.AcdLisuanYear;
 import com.example.demo.entity.AcdRsGzlYear;
 import com.example.demo.entity.AcdChakanMonth;
+import com.example.demo.entity.AcdCkDswcMonth;
+import com.example.demo.entity.AcdDingsunTjlMonth;
+import com.example.demo.entity.AcdDingsunWclMonth;
+import com.example.demo.entity.AcdDingsunZflMonth;
+import com.example.demo.entity.AcdRsGzlMonth;
+import com.example.demo.entity.AcdLisuanMonth;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
@@ -202,6 +208,42 @@ public interface ReportTableMapper{
             @Param("comnameSgs") String comnameSgs
     );
 
+    /** 查勘量+定损完成-月度每日 */
+    List<AcdCkDswcMonth> getCkDswcMonthData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs
+    );
+
+    /** 定损提交量-月度每日 */
+    List<AcdDingsunTjlMonth> getDingsunTjlMonthData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs
+    );
+
+    /** 定损完成量-月度每日 */
+    List<AcdDingsunWclMonth> getDingsunWclMonthData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs
+    );
+
+    /** 定损支付量-月度每日 */
+    List<AcdDingsunZflMonth> getDingsunZflMonthData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs
+    );
+
+    /** 人伤跟踪量-月度每日（jaflag=后续跟踪） */
+    List<AcdRsGzlMonth> getRsGzlMonthData(@Param("tjDate") String tjDate);
+
+    /** 人伤调解量-月度每日（jaflag=人伤调解） */
+    List<AcdRsGzlMonth> getRsTjlMonthData(@Param("tjDate") String tjDate);
+
+    /** 理算量-月度每日 */
+    List<AcdLisuanMonth> getLisuanMonthData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs
+    );
+
     // ==================== 分页查询（laoxiao 9 + chakan_month） ====================
 
     /** 查勘量-年度每月 - 分页 */
@@ -285,6 +327,70 @@ public interface ReportTableMapper{
             @Param("offset") int offset,
             @Param("limit") int limit);
     long countChakanMonth(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 查勘量+定损完成-月度每日 - 分页 */
+    List<AcdCkDswcMonth> getCkDswcMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countCkDswcMonth(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 定损提交量-月度每日 - 分页 */
+    List<AcdDingsunTjlMonth> getDingsunTjlMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countDingsunTjlMonth(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 定损完成量-月度每日 - 分页 */
+    List<AcdDingsunWclMonth> getDingsunWclMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countDingsunWclMonth(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 定损支付量-月度每日 - 分页 */
+    List<AcdDingsunZflMonth> getDingsunZflMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countDingsunZflMonth(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 人伤跟踪量-月度每日 - 分页 */
+    List<AcdRsGzlMonth> getRsGzlMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countRsGzlMonth(@Param("tjDate") String tjDate);
+
+    /** 人伤调解量-月度每日 - 分页 */
+    List<AcdRsGzlMonth> getRsTjlMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countRsTjlMonth(@Param("tjDate") String tjDate);
+
+    /** 理算量-月度每日 - 分页 */
+    List<AcdLisuanMonth> getLisuanMonthDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countLisuanMonth(
             @Param("tjDate") String tjDate,
             @Param("comnameSgs") String comnameSgs);
 
