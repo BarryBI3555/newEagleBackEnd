@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.WorkloadMapper">
+
+    <!-- 通用：根据表名获取最大统计日期
+         ${tableName} 是字符串拼接（MyBatis 不支持 #{} 传 SQL 标识符）。
+         安全模型：com.example.demo.util.TableNames 白名单在 Service 层
+         拦截非法表名，本方法严禁接收任何外部入参。 -->
+    <select id="getMaxTjDateByTable" resultType="java.lang.String">
+        SELECT MAX(tjdate)
+        FROM ${tableName}
+    </select>
+
+    <!-- ===================== 部门级工作量（按日粒度） ===================== -->
+    <select id="getWorkloadBmData" resultType="com.example.demo.entity.CurGzlTableBm">
+        SELECT a.comcode as comCode,
+               a.comname as comName,
+               a.tjdate as tjDate,
+               a.tjtime as maxTjTime,
+               sum(ck_jsl) as ckJsl,
+               sum(ck_jsl_wcl) as ckJslWcl,
+               sum(ck_wcl) as ckWcl,
+               sum(ds_tjl) as dsTjl,
+               sum(ds_wcl) as dsWcl,
+               sum(ds_zfl) as dsZfl,
+               sum(shougen) as shouGen,
+               sum(hougen) as houGen,
+               sum(tiaojie) as tiaoJie,
+               sum(ja) as ja,
+               sum(zl) as zl
+        FROM acd_dangri_gzl_bm a
+        WHERE a.tjdate &gt;= #{startDate}
+          AND a.tjdate &lt;= #{endDate}
+          <if test="comName != null and comName != ''">
+              AND a.comname like concat('%', #{comName}, '%')
+          </if>
+        GROUP BY a.comcode, a.comname, a.tjdate, a.tjtime
+        ORDER BY a.comname, a.tjdate
+    </select>
+
+    <!-- ===================== 小组级工作量（按日粒度） ===================== -->
+    <select id="getWorkloadGroupData" resultType="com.example.demo.entity.CurGzlTableGroup">
+        SELECT a.comcode as comCode,
+               a.comname as comName,
+               a.groups as groups,
+               a.groupscode as groupsCode,
+               a.tjdate as tjDate,
+               a.tjtime as maxTjTime,
+               sum(ck_jsl) as ckJsl,
+               sum(ck_jsl_wcl) as ckJslWcl,
+               sum(ck_wcl) as ckWcl,
+               sum(ds_tjl) as dsTjl,
+               sum(ds_wcl) as dsWcl,
+               sum(ds_zfl) as dsZfl,
+               sum(shougen) as shouGen,
+               sum(hougen) as houGen,
+               sum(tiaojie) as tiaoJie,
+               sum(ja) as ja,
+               sum(zl) as zl
+        FROM acd_dangri_gzl_group a
+        WHERE a.tjdate &gt;= #{startDate}
+          AND a.tjdate &lt;= #{endDate}
+          AND a.groups is not null
+          AND a.groupscode NOT IN ('5101701', '5101702', '5101703')
+          <if test="comCode != null and comCode != ''">
+              AND a.comcode = #{comCode}
+          </if>
+          <if test="groups != null and groups != ''">
+              AND a.groups like concat('%', #{groups}, '%')
+          </if>
+        GROUP BY a.comcode, a.comname, a.groups, a.groupscode, a.tjdate, a.tjtime
+        ORDER BY a.comname, a.groupscode, a.tjdate
+    </select>
+
+    <!-- ===================== 员工级工作量（按日粒度） ===================== -->
+    <select id="getWorkloadRyData" resultType="com.example.demo.entity.CurGzlTableRy">
+        SELECT a.comcode as comCode,
+               a.comname as comName,
+               a.username as userName,
+               a.usercode as userCode,
+               a.groups as groups,
+               a.groupscode as groupsCode,
+               a.tjdate as tjDate,
+               a.tjtime as maxTjTime,
+               sum(ck_jsl) as ckJsl,
+               sum(ck_jsl_wcl) as ckJslWcl,
+               sum(ck_wcl) as ckWcl,
+               sum(ds_tjl) as dsTjl,
+               sum(ds_wcl) as dsWcl,
+               sum(ds_zfl) as dsZfl,
+               sum(shougen) as shouGen,
+               sum(hougen) as houGen,
+               sum(tiaojie) as tiaoJie,
+               sum(ja) as ja,
+               sum(zl) as zl
+        FROM acd_dangri_gzl_ry a
+        WHERE a.tjdate &gt;= #{startDate}
+          AND a.tjdate &lt;= #{endDate}
+          AND a.groups is not null
+          AND a.groupscode NOT IN ('5101701', '5101702', '5101703')
+          <if test="groupsCode != null and groupsCode != ''">
+              AND a.groupscode = #{groupsCode}
+          </if>
+          <if test="userName != null and userName != ''">
+              AND a.username like concat('%', #{userName}, '%')
+          </if>
+        GROUP BY a.comcode, a.comname, a.username, a.usercode, a.groups, a.groupscode, a.tjdate, a.tjtime
+        ORDER BY a.comname, a.groupscode, a.username, a.tjdate
+    </select>
+
+    <!-- 根据部门名称获取部门编码 -->
+    <select id="getComCodeByName" resultType="java.lang.String">
+        SELECT DISTINCT comcode
+        FROM acd_dangri_gzl_bm
+        WHERE comname = #{comName}
+        LIMIT 1
+    </select>
+
+    <!-- 根据部门编码 + 小组名称获取小组编码（用于钻取时的精确定位） -->
+    <select id="getGroupsCodeByComAndName" resultType="java.lang.String">
+        SELECT DISTINCT groupscode
+        FROM acd_dangri_gzl_group
+        WHERE groups = #{groupsName}
+          AND comcode = #{comCode}
+          AND groupscode NOT IN ('5101701', '5101702', '5101703')
+        LIMIT 1
+    </select>
+
+</mapper>

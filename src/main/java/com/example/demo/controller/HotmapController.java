@@ -5,6 +5,8 @@ import com.example.demo.entity.Result;
 import com.example.demo.entity.StatsCardData;
 import com.example.demo.service.HeatDataCacheService;
 import com.example.demo.service.HotmapService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,8 @@ import java.util.Map;
 @RequestMapping("/api")
 public class HotmapController {
 
+    private static final Logger log = LoggerFactory.getLogger(HotmapController.class);
+
     @Autowired
     private HotmapService hotmapService;
 
@@ -38,7 +42,8 @@ public class HotmapController {
         } catch (DateTimeParseException e) {
             return Result.error("日期格式错误，应为 yyyy-MM-dd");
         } catch (Exception e) {
-            return Result.error("获取热力图数据失败: " + e.getMessage());
+            log.error("获取热力图数据失败", e);
+            return Result.error("获取热力图数据失败", e);
         }
     }
 
@@ -50,7 +55,8 @@ public class HotmapController {
             LocalDate queryDate = date == null ? LocalDate.now().minusDays(1) : date;
             return Result.success(hotmapService.getStatsCardsData(queryDate));
         } catch (Exception e) {
-            return Result.error("获取统计卡片数据失败: " + e.getMessage());
+            log.error("获取统计卡片数据失败", e);
+            return Result.error("获取统计卡片数据失败", e);
         }
     }
 
@@ -75,7 +81,8 @@ public class HotmapController {
         } catch (DateTimeParseException e) {
             return Result.error("日期格式错误，应为 yyyy-MM-dd");
         } catch (Exception e) {
-            return Result.error("获取热力图进度失败: " + e.getMessage());
+            log.error("获取热力图进度失败", e);
+            return Result.error("获取热力图进度失败", e);
         }
     }
 
@@ -98,7 +105,8 @@ public class HotmapController {
         } catch (DateTimeParseException e) {
             return Result.error("日期格式错误，应为 yyyy-MM-dd");
         } catch (Exception e) {
-            return Result.error("清除热力图缓存失败: " + e.getMessage());
+            log.error("清除热力图缓存失败", e);
+            return Result.error("清除热力图缓存失败", e);
         }
     }
 }

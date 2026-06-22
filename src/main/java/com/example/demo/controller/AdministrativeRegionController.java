@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,10 +19,11 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @RestController
 @RequestMapping("/api")
 public class AdministrativeRegionController {
+    private static final Logger log = LoggerFactory.getLogger(AdministrativeRegionController.class);
+
     // ====================== 腾讯地图获取行政区划json ======================
 
-
-     @Autowired
+    @Autowired
     private RestTemplate restTemplate;
 
     @Value("${tencent.map.key}")
@@ -39,7 +42,8 @@ public class AdministrativeRegionController {
             String url = apiDomain + "ws/geocoder/v1/?location=" + location + "&key=" + tencentMapKey;
             return Result.success(restTemplate.getForObject(url, Object.class));
         } catch (Exception e) {
-            return Result.error("请求失败: " + e.getMessage());
+            log.error("请求失败", e);
+            return Result.error("请求失败", e);
         }
     }
 
@@ -55,10 +59,10 @@ public class AdministrativeRegionController {
             String url = apiDomain + "ws/district/v1/search?key=" + tencentMapKey + "&keyword=" + keyword + "&get_polygon=2&max_offset=100";
             return Result.success(restTemplate.getForObject(url, Object.class));
         } catch (Exception e) {
-            return Result.error("请求失败: " + e.getMessage());
+            log.error("请求失败", e);
+            return Result.error("请求失败", e);
         }
     }
-
 
     // 获取下级行政区划
     @GetMapping("/map/district/getchildren")
@@ -72,7 +76,8 @@ public class AdministrativeRegionController {
             String url = apiDomain + "ws/district/v1/getchildren?key=" + tencentMapKey + "&id=" + id + "&get_polygon=2&max_offset=100";
             return Result.success(restTemplate.getForObject(url, Object.class));
         } catch (Exception e) {
-            return Result.error("请求失败: " + e.getMessage());
+            log.error("请求失败", e);
+            return Result.error("请求失败", e);
         }
     }
 

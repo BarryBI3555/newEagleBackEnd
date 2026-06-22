@@ -9,8 +9,7 @@ import com.example.demo.entity.RainItems;
 import com.example.demo.entity.RainLevelProcess;
 import com.example.demo.entity.AcdShuiyancheCldHz;
 import com.example.demo.entity.Result;
-import com.example.demo.mapper.RainMapper;
-import com.example.demo.service.ShuiyancheService;
+import com.example.demo.service.RainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,41 +26,38 @@ import java.util.List;
 public class RainController {
 
     @Autowired
-    private RainMapper rainMapper;
-
-    @Autowired
-    private ShuiyancheService shuiyancheService;
+    private RainService rainService;
 
     @GetMapping("/dayLevel")
     public Result<List<RainDayLevel>> dayLevel() {
         String today = LocalDate.now().toString();
-        return Result.success(rainMapper.getDayLevel(today));
+        return Result.success(rainService.getDayLevel(today));
     }
 
     @GetMapping("/carPlace")
     public Result<List<RainCarPlace>> carPlace() {
-        return Result.success(rainMapper.getCarPlace());
+        return Result.success(rainService.getCarPlace());
     }
 
     @GetMapping("/zhiban")
     public Result<List<RainZhiban>> zhiban() {
         String today = LocalDate.now().toString();
-        return Result.success(rainMapper.getZhiban(today));
+        return Result.success(rainService.getZhiban(today));
     }
 
     @GetMapping("/repair")
     public Result<List<RainSaveRepair>> repair() {
-        return Result.success(rainMapper.getRepair());
+        return Result.success(rainService.getRepair());
     }
 
     @GetMapping("/lianluo")
     public Result<List<RainLianluo>> lianluo() {
-        return Result.success(rainMapper.getLianluo());
+        return Result.success(rainService.getLianluo());
     }
 
     @GetMapping("/items")
     public Result<List<RainItems>> items() {
-        return Result.success(rainMapper.getItems());
+        return Result.success(rainService.getItems());
     }
 
     /**
@@ -73,7 +69,7 @@ public class RainController {
         if (date == null || date.trim().isEmpty()) {
             date = LocalDate.now().toString();
         }
-        return Result.success(rainMapper.getLevelProcessByDate(date));
+        return Result.success(rainService.getLevelProcessByDate(date));
     }
 
     /**
@@ -81,7 +77,7 @@ public class RainController {
      */
     @GetMapping("/cardData")
     public Result<AcdShuiyancheCldHz> cardData() {
-        return Result.success(shuiyancheService.getCardData());
+        return Result.success(rainService.getCardData());
     }
 
     /**
@@ -89,6 +85,6 @@ public class RainController {
      */
     @GetMapping("/reportTable")
     public Result<List<AcdShuiyancheCldHz>> reportTable() {
-        return Result.success(shuiyancheService.getReportTableData());
+        return Result.success(rainService.getReportTableData());
     }
 }
