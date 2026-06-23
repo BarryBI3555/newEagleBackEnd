@@ -58,7 +58,33 @@ public final class TableNames {
             "acd_dingsun_wcl_month",
             "acd_dingsun_zfl_month",
             "acd_lisuan_month",
-            "acd_rs_gzl_month"
+            "acd_rs_gzl_month",
+            // 2026-06 新增（运营效率 7 张表）
+            "acd_ba_la_ja_wj_pk",
+            "acd_zhouqi_ry",
+            "acd_pacll_bm_shishi",
+            "acd_jieanl_bm",
+            "acd_jieanl_ry",
+            "acd_pacll_cx_zgs",
+            "acd_lingjie_ry",
+            // 2026-06 新增（成本管控 14 张表）
+            "acd_pflsgn_syxz",
+            "acd_pflsgn_khq_zgs",
+            "acd_pflsgn_syxz_zgs",
+            "acd_pflsgn_pp_zgs",
+            "acd_pflbdn_zgs",
+            "acd_pflbdn_khq",
+            "acd_pflbdn_syxz",
+            "acd_pflbdn_pinpai",
+            "acd_pflbdn_xny",
+            "acd_pflbdn_syxz_zgs",
+            "acd_pflbdn_khq_zgs",
+            "acd_pflbdn_xny_zgs",
+            "acd_pflbdn_pp_zgs",
+            "acd_zhpfl_xz",
+
+            "acd_zgs_cbb",
+            "acd_wxdw_gjzb"
         ))
     );
 

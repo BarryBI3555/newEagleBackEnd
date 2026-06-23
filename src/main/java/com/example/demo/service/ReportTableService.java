@@ -30,6 +30,29 @@ import com.example.demo.entity.AcdDingsunWclMonth;
 import com.example.demo.entity.AcdDingsunZflMonth;
 import com.example.demo.entity.AcdRsGzlMonth;
 import com.example.demo.entity.AcdLisuanMonth;
+import com.example.demo.entity.AcdBaLaJaWjPk;
+import com.example.demo.entity.AcdZhouqiRy;
+import com.example.demo.entity.AcdPacllBmShishi;
+import com.example.demo.entity.AcdJieanlBm;
+import com.example.demo.entity.AcdJieanlRy;
+import com.example.demo.entity.AcdPacllCxZgs;
+import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdPflsgnSyxz;
+import com.example.demo.entity.AcdPflsgnKhqZgs;
+import com.example.demo.entity.AcdPflsgnSyxzZgs;
+import com.example.demo.entity.AcdPflsgnPpZgs;
+import com.example.demo.entity.AcdPflbdnZgs;
+import com.example.demo.entity.AcdPflbdnKhq;
+import com.example.demo.entity.AcdPflbdnSyxz;
+import com.example.demo.entity.AcdPflbdnPinpai;
+import com.example.demo.entity.AcdPflbdnXny;
+import com.example.demo.entity.AcdPflbdnSyxzZgs;
+import com.example.demo.entity.AcdPflbdnKhqZgs;
+import com.example.demo.entity.AcdPflbdnXnyZgs;
+import com.example.demo.entity.AcdPflbdnPpZgs;
+import com.example.demo.entity.AcdZhpflXz;
+import com.example.demo.entity.AcdZgsCbb;
+import com.example.demo.entity.AcdWxdwGjzb;
 import com.example.demo.entity.PageResult;
 
 import java.util.List;
@@ -255,4 +278,101 @@ public interface ReportTableService {
 
     /** 案均赔款-新能源（车险）- 分页 */
     PageResult<AcdAnjunCxXny> getAnjunCxXnyDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    // ==================== 2026-06 新增 7 张表 ====================
+
+    /** 车险案件量-承保地 */
+    List<AcdBaLaJaWjPk> getBaLaJaWjPkData(String tjDate, String comnameSgs);
+    PageResult<AcdBaLaJaWjPk> getBaLaJaWjPkDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 周期-人员 */
+    List<AcdZhouqiRy> getZhouqiRyData(String tjDate, String comnameSgs);
+    PageResult<AcdZhouqiRy> getZhouqiRyDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 赔案处理率-部门实时 */
+    List<AcdPacllBmShishi> getPacllBmShishiData(String comname);
+    PageResult<AcdPacllBmShishi> getPacllBmShishiDataPage(String comname, int current, int size);
+
+    /** 每日结案量-部门实时 */
+    List<AcdJieanlBm> getJieanlBmData(String tjDate);
+    PageResult<AcdJieanlBm> getJieanlBmDataPage(String tjDate, int current, int size);
+
+    /** 每日结案量-人员实时 */
+    List<AcdJieanlRy> getJieanlRyData(String tjDate, String comname);
+    PageResult<AcdJieanlRy> getJieanlRyDataPage(String tjDate, String comname, int current, int size);
+
+    /** 车险结案率-支公司 */
+    List<AcdPacllCxZgs> getPacllCxZgsData(String tjDate, String comnameSgs);
+    PageResult<AcdPacllCxZgs> getPacllCxZgsDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 零结案-人员 */
+    List<AcdLingjieRy> getLingjieRyData(String tjDate, String groups, String username);
+    PageResult<AcdLingjieRy> getLingjieRyDataPage(String tjDate, String groups, String username, int current, int size);
+
+    // ==================== 成本管控新增 14 张表 (2026-06) ====================
+
+    /** 事故年赔付率-使用性质 */
+    List<AcdPflsgnSyxz> getPflsgnSyxzData(String tjDate, String comnameSgs, String usenaturename);
+    PageResult<AcdPflsgnSyxz> getPflsgnSyxzDataPage(String tjDate, String comnameSgs, String usenaturename, int current, int size);
+
+    /** 事故年赔付率-支公司-客户群 */
+    List<AcdPflsgnKhqZgs> getPflsgnKhqZgsData(String tjDate, String comnameSgs, String comname, String khq);
+    PageResult<AcdPflsgnKhqZgs> getPflsgnKhqZgsDataPage(String tjDate, String comnameSgs, String comname, String khq, int current, int size);
+
+    /** 事故年赔付率-支公司-使用性质 */
+    List<AcdPflsgnSyxzZgs> getPflsgnSyxzZgsData(String tjDate, String comnameSgs, String comname, String usenaturename);
+    PageResult<AcdPflsgnSyxzZgs> getPflsgnSyxzZgsDataPage(String tjDate, String comnameSgs, String comname, String usenaturename, int current, int size);
+
+    /** 事故年赔付率-支公司-品牌 */
+    List<AcdPflsgnPpZgs> getPflsgnPpZgsData(String tjDate, String comnameSgs, String comname, String brandname);
+    PageResult<AcdPflsgnPpZgs> getPflsgnPpZgsDataPage(String tjDate, String comnameSgs, String comname, String brandname, int current, int size);
+
+    /** 保单年赔付率-支公司 */
+    List<AcdPflbdnZgs> getPflbdnZgsData(String tjDate, String comnameSgs);
+    PageResult<AcdPflbdnZgs> getPflbdnZgsDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 保单年赔付率-客户群 */
+    List<AcdPflbdnKhq> getPflbdnKhqData(String tjDate, String comnameSgs, String khq);
+    PageResult<AcdPflbdnKhq> getPflbdnKhqDataPage(String tjDate, String comnameSgs, String khq, int current, int size);
+
+    /** 保单年赔付率-使用性质 */
+    List<AcdPflbdnSyxz> getPflbdnSyxzData(String tjDate, String comnameSgs, String usenaturename);
+    PageResult<AcdPflbdnSyxz> getPflbdnSyxzDataPage(String tjDate, String comnameSgs, String usenaturename, int current, int size);
+
+    /** 保单年赔付率-品牌 (无支公司) */
+    List<AcdPflbdnPinpai> getPflbdnPinpaiData(String tjDate, String comnameSgs, String brandname);
+    PageResult<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(String tjDate, String comnameSgs, String brandname, int current, int size);
+
+    /** 保单年赔付率-新能源 */
+    List<AcdPflbdnXny> getPflbdnXnyData(String tjDate, String xnyflag);
+    PageResult<AcdPflbdnXny> getPflbdnXnyDataPage(String tjDate, String xnyflag, int current, int size);
+
+    /** 保单年赔付率-支公司-使用性质 */
+    List<AcdPflbdnSyxzZgs> getPflbdnSyxzZgsData(String tjDate, String comnameSgs, String comname, String usenaturename);
+    PageResult<AcdPflbdnSyxzZgs> getPflbdnSyxzZgsDataPage(String tjDate, String comnameSgs, String comname, String usenaturename, int current, int size);
+
+    /** 保单年赔付率-支公司-客户群 */
+    List<AcdPflbdnKhqZgs> getPflbdnKhqZgsData(String tjDate, String comnameSgs, String comname, String khq);
+    PageResult<AcdPflbdnKhqZgs> getPflbdnKhqZgsDataPage(String tjDate, String comnameSgs, String comname, String khq, int current, int size);
+
+    /** 保单年赔付率-支公司-新能源 */
+    List<AcdPflbdnXnyZgs> getPflbdnXnyZgsData(String tjDate, String comnameSgs, String comname, String xnyflag);
+    PageResult<AcdPflbdnXnyZgs> getPflbdnXnyZgsDataPage(String tjDate, String comnameSgs, String comname, String xnyflag, int current, int size);
+
+    /** 保单年赔付率-支公司-品牌 */
+    List<AcdPflbdnPpZgs> getPflbdnPpZgsData(String tjDate, String comnameSgs, String comname, String brandname);
+    PageResult<AcdPflbdnPpZgs> getPflbdnPpZgsDataPage(String tjDate, String comnameSgs, String comname, String brandname, int current, int size);
+
+    /** 综合赔付率-险种 */
+    List<AcdZhpflXz> getZhpflXzData(String tjDate, String xl);
+    PageResult<AcdZhpflXz> getZhpflXzDataPage(String tjDate, String xl, int current, int size);
+
+    // ==================== 维修单位 (2026-06) ====================
+    /** 各支公司产保比 */
+    List<AcdZgsCbb> getZgsCbbData(String tjDate, String comnameSgs);
+    PageResult<AcdZgsCbb> getZgsCbbDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 维修单位关键指标 */
+    List<AcdWxdwGjzb> getWxdwGjzbData(String tjDate, String comnameSgs, String repairfactoryname);
+    PageResult<AcdWxdwGjzb> getWxdwGjzbDataPage(String tjDate, String comnameSgs, String repairfactoryname, int current, int size);
 }

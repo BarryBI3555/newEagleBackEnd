@@ -30,6 +30,29 @@ import com.example.demo.entity.AcdDingsunWclMonth;
 import com.example.demo.entity.AcdDingsunZflMonth;
 import com.example.demo.entity.AcdRsGzlMonth;
 import com.example.demo.entity.AcdLisuanMonth;
+import com.example.demo.entity.AcdBaLaJaWjPk;
+import com.example.demo.entity.AcdZhouqiRy;
+import com.example.demo.entity.AcdPacllBmShishi;
+import com.example.demo.entity.AcdJieanlBm;
+import com.example.demo.entity.AcdJieanlRy;
+import com.example.demo.entity.AcdPacllCxZgs;
+import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdPflsgnSyxz;
+import com.example.demo.entity.AcdPflsgnKhqZgs;
+import com.example.demo.entity.AcdPflsgnSyxzZgs;
+import com.example.demo.entity.AcdPflsgnPpZgs;
+import com.example.demo.entity.AcdPflbdnZgs;
+import com.example.demo.entity.AcdPflbdnKhq;
+import com.example.demo.entity.AcdPflbdnSyxz;
+import com.example.demo.entity.AcdPflbdnPinpai;
+import com.example.demo.entity.AcdPflbdnXny;
+import com.example.demo.entity.AcdPflbdnSyxzZgs;
+import com.example.demo.entity.AcdPflbdnKhqZgs;
+import com.example.demo.entity.AcdPflbdnXnyZgs;
+import com.example.demo.entity.AcdPflbdnPpZgs;
+import com.example.demo.entity.AcdZhpflXz;
+import com.example.demo.entity.AcdZgsCbb;
+import com.example.demo.entity.AcdWxdwGjzb;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
@@ -575,5 +598,363 @@ public interface ReportTableMapper{
     long countAnjunCxXny(
             @Param("tjDate") String tjDate,
             @Param("comnameSgs") String comnameSgs);
+
+    // ==================== 2026-06 新增 7 张表 ====================
+
+    /** 车险案件量-承保地 */
+    List<AcdBaLaJaWjPk> getBaLaJaWjPkData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdBaLaJaWjPk> getBaLaJaWjPkDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countBaLaJaWjPk(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 周期-人员 */
+    List<AcdZhouqiRy> getZhouqiRyData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdZhouqiRy> getZhouqiRyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countZhouqiRy(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 赔案处理率-部门实时（无 comnameSgs，仅 comname 模糊过滤） */
+    List<AcdPacllBmShishi> getPacllBmShishiData(
+            @Param("comname") String comname);
+    List<AcdPacllBmShishi> getPacllBmShishiDataPage(
+            @Param("comname") String comname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPacllBmShishi(
+            @Param("comname") String comname);
+
+    /** 每日结案量-部门实时（无 comname 筛选） */
+    List<AcdJieanlBm> getJieanlBmData(
+            @Param("tjDate") String tjDate);
+    List<AcdJieanlBm> getJieanlBmDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countJieanlBm(
+            @Param("tjDate") String tjDate);
+
+    /** 每日结案量-人员实时 */
+    List<AcdJieanlRy> getJieanlRyData(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname);
+    List<AcdJieanlRy> getJieanlRyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countJieanlRy(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname);
+
+    /** 车险结案率-支公司 */
+    List<AcdPacllCxZgs> getPacllCxZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdPacllCxZgs> getPacllCxZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPacllCxZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 零结案-人员（tjdate + groups + username） */
+    List<AcdLingjieRy> getLingjieRyData(
+            @Param("tjDate") String tjDate,
+            @Param("groups") String groups,
+            @Param("username") String username);
+    List<AcdLingjieRy> getLingjieRyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("groups") String groups,
+            @Param("username") String username,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countLingjieRy(
+            @Param("tjDate") String tjDate,
+            @Param("groups") String groups,
+            @Param("username") String username);
+
+    // ==================== 成本管控新增 14 张表 (2026-06) ====================
+
+    /** 事故年赔付率-使用性质 */
+    List<AcdPflsgnSyxz> getPflsgnSyxzData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("usenaturename") String usenaturename);
+    List<AcdPflsgnSyxz> getPflsgnSyxzDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("usenaturename") String usenaturename,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflsgnSyxz(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("usenaturename") String usenaturename);
+
+    /** 事故年赔付率-支公司-客户群 */
+    List<AcdPflsgnKhqZgs> getPflsgnKhqZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("khq") String khq);
+    List<AcdPflsgnKhqZgs> getPflsgnKhqZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("khq") String khq,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflsgnKhqZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("khq") String khq);
+
+    /** 事故年赔付率-支公司-使用性质 */
+    List<AcdPflsgnSyxzZgs> getPflsgnSyxzZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("usenaturename") String usenaturename);
+    List<AcdPflsgnSyxzZgs> getPflsgnSyxzZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("usenaturename") String usenaturename,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflsgnSyxzZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("usenaturename") String usenaturename);
+
+    /** 事故年赔付率-支公司-品牌 */
+    List<AcdPflsgnPpZgs> getPflsgnPpZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("brandname") String brandname);
+    List<AcdPflsgnPpZgs> getPflsgnPpZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("brandname") String brandname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflsgnPpZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("brandname") String brandname);
+
+    /** 保单年赔付率-支公司 */
+    List<AcdPflbdnZgs> getPflbdnZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdPflbdnZgs> getPflbdnZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 保单年赔付率-客户群 */
+    List<AcdPflbdnKhq> getPflbdnKhqData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("khq") String khq);
+    List<AcdPflbdnKhq> getPflbdnKhqDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("khq") String khq,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnKhq(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("khq") String khq);
+
+    /** 保单年赔付率-使用性质 */
+    List<AcdPflbdnSyxz> getPflbdnSyxzData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("usenaturename") String usenaturename);
+    List<AcdPflbdnSyxz> getPflbdnSyxzDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("usenaturename") String usenaturename,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnSyxz(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("usenaturename") String usenaturename);
+
+    /** 保单年赔付率-品牌 (无支公司) */
+    List<AcdPflbdnPinpai> getPflbdnPinpaiData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("brandname") String brandname);
+    List<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("brandname") String brandname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnPinpai(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("brandname") String brandname);
+
+    /** 保单年赔付率-新能源 */
+    List<AcdPflbdnXny> getPflbdnXnyData(
+            @Param("tjDate") String tjDate,
+            @Param("xnyflag") String xnyflag);
+    List<AcdPflbdnXny> getPflbdnXnyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("xnyflag") String xnyflag,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnXny(
+            @Param("tjDate") String tjDate,
+            @Param("xnyflag") String xnyflag);
+
+    /** 保单年赔付率-支公司-使用性质 */
+    List<AcdPflbdnSyxzZgs> getPflbdnSyxzZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("usenaturename") String usenaturename);
+    List<AcdPflbdnSyxzZgs> getPflbdnSyxzZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("usenaturename") String usenaturename,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnSyxzZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("usenaturename") String usenaturename);
+
+    /** 保单年赔付率-支公司-客户群 */
+    List<AcdPflbdnKhqZgs> getPflbdnKhqZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("khq") String khq);
+    List<AcdPflbdnKhqZgs> getPflbdnKhqZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("khq") String khq,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnKhqZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("khq") String khq);
+
+    /** 保单年赔付率-支公司-新能源 */
+    List<AcdPflbdnXnyZgs> getPflbdnXnyZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("xnyflag") String xnyflag);
+    List<AcdPflbdnXnyZgs> getPflbdnXnyZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("xnyflag") String xnyflag,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnXnyZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("xnyflag") String xnyflag);
+
+    /** 保单年赔付率-支公司-品牌 */
+    List<AcdPflbdnPpZgs> getPflbdnPpZgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("brandname") String brandname);
+    List<AcdPflbdnPpZgs> getPflbdnPpZgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("brandname") String brandname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countPflbdnPpZgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("comname") String comname,
+            @Param("brandname") String brandname);
+
+    /** 综合赔付率-险种 */
+    List<AcdZhpflXz> getZhpflXzData(
+            @Param("tjDate") String tjDate,
+            @Param("xl") String xl);
+    List<AcdZhpflXz> getZhpflXzDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("xl") String xl,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countZhpflXz(
+            @Param("tjDate") String tjDate,
+            @Param("xl") String xl);
+
+    // ==================== 维修单位 (2026-06) ====================
+    /** 各支公司产保比 */
+    List<AcdZgsCbb> getZgsCbbData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdZgsCbb> getZgsCbbDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countZgsCbb(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 维修单位关键指标 */
+    List<AcdWxdwGjzb> getWxdwGjzbData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("repairfactoryname") String repairfactoryname);
+    List<AcdWxdwGjzb> getWxdwGjzbDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("repairfactoryname") String repairfactoryname,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countWxdwGjzb(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("repairfactoryname") String repairfactoryname);
 
 }
