@@ -30,6 +30,29 @@ import com.example.demo.entity.AcdDingsunWclMonth;
 import com.example.demo.entity.AcdDingsunZflMonth;
 import com.example.demo.entity.AcdRsGzlMonth;
 import com.example.demo.entity.AcdLisuanMonth;
+import com.example.demo.entity.AcdBaLaJaWjPk;
+import com.example.demo.entity.AcdZhouqiRy;
+import com.example.demo.entity.AcdPacllBmShishi;
+import com.example.demo.entity.AcdJieanlBm;
+import com.example.demo.entity.AcdJieanlRy;
+import com.example.demo.entity.AcdPacllCxZgs;
+import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdPflsgnSyxz;
+import com.example.demo.entity.AcdPflsgnKhqZgs;
+import com.example.demo.entity.AcdPflsgnSyxzZgs;
+import com.example.demo.entity.AcdPflsgnPpZgs;
+import com.example.demo.entity.AcdPflbdnZgs;
+import com.example.demo.entity.AcdPflbdnKhq;
+import com.example.demo.entity.AcdPflbdnSyxz;
+import com.example.demo.entity.AcdPflbdnPinpai;
+import com.example.demo.entity.AcdPflbdnXny;
+import com.example.demo.entity.AcdPflbdnSyxzZgs;
+import com.example.demo.entity.AcdPflbdnKhqZgs;
+import com.example.demo.entity.AcdPflbdnXnyZgs;
+import com.example.demo.entity.AcdPflbdnPpZgs;
+import com.example.demo.entity.AcdZhpflXz;
+import com.example.demo.entity.AcdZgsCbb;
+import com.example.demo.entity.AcdWxdwGjzb;
 import com.example.demo.entity.PageResult;
 import com.example.demo.mapper.ReportTableMapper;
 import com.example.demo.service.ReportTableService;
@@ -609,6 +632,331 @@ public class ReportTableServiceImpl implements ReportTableService {
         java.util.List<AcdAnjunCxXny> records = total == 0
                 ? java.util.Collections.emptyList()
                 : reportTableMapper.getAnjunCxXnyDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    // ==================== 2026-06 新增 7 张表 ====================
+
+    @Override
+    public List<AcdBaLaJaWjPk> getBaLaJaWjPkData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getBaLaJaWjPkData(tjDate, comnameSgs);
+    }
+
+    @Override
+    public PageResult<AcdBaLaJaWjPk> getBaLaJaWjPkDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countBaLaJaWjPk(tjDate, comnameSgs);
+        java.util.List<AcdBaLaJaWjPk> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getBaLaJaWjPkDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdZhouqiRy> getZhouqiRyData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getZhouqiRyData(tjDate, comnameSgs);
+    }
+
+    @Override
+    public PageResult<AcdZhouqiRy> getZhouqiRyDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countZhouqiRy(tjDate, comnameSgs);
+        java.util.List<AcdZhouqiRy> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getZhouqiRyDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPacllBmShishi> getPacllBmShishiData(String comname) {
+        return reportTableMapper.getPacllBmShishiData(comname);
+    }
+
+    @Override
+    public PageResult<AcdPacllBmShishi> getPacllBmShishiDataPage(String comname, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countPacllBmShishi(comname);
+        java.util.List<AcdPacllBmShishi> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getPacllBmShishiDataPage(comname, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdJieanlBm> getJieanlBmData(String tjDate) {
+        return reportTableMapper.getJieanlBmData(tjDate);
+    }
+
+    @Override
+    public PageResult<AcdJieanlBm> getJieanlBmDataPage(String tjDate, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countJieanlBm(tjDate);
+        java.util.List<AcdJieanlBm> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getJieanlBmDataPage(tjDate, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdJieanlRy> getJieanlRyData(String tjDate, String comname) {
+        return reportTableMapper.getJieanlRyData(tjDate, comname);
+    }
+
+    @Override
+    public PageResult<AcdJieanlRy> getJieanlRyDataPage(String tjDate, String comname, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countJieanlRy(tjDate, comname);
+        java.util.List<AcdJieanlRy> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getJieanlRyDataPage(tjDate, comname, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPacllCxZgs> getPacllCxZgsData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getPacllCxZgsData(tjDate, comnameSgs);
+    }
+
+    @Override
+    public PageResult<AcdPacllCxZgs> getPacllCxZgsDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countPacllCxZgs(tjDate, comnameSgs);
+        java.util.List<AcdPacllCxZgs> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getPacllCxZgsDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdLingjieRy> getLingjieRyData(String tjDate, String groups, String username) {
+        return reportTableMapper.getLingjieRyData(tjDate, groups, username);
+    }
+
+    @Override
+    public PageResult<AcdLingjieRy> getLingjieRyDataPage(String tjDate, String groups, String username, int current, int size) {
+        current = normalizeCurrent(current);
+        size = normalizeSize(size);
+        long total = reportTableMapper.countLingjieRy(tjDate, groups, username);
+        java.util.List<AcdLingjieRy> records = total == 0
+                ? java.util.Collections.emptyList()
+                : reportTableMapper.getLingjieRyDataPage(tjDate, groups, username, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    // ==================== 成本管控新增 14 张表 (2026-06) ====================
+
+    @Override
+    public List<AcdPflsgnSyxz> getPflsgnSyxzData(String tjDate, String comnameSgs, String usenaturename) {
+        return reportTableMapper.getPflsgnSyxzData(tjDate, comnameSgs, usenaturename);
+    }
+    @Override
+    public PageResult<AcdPflsgnSyxz> getPflsgnSyxzDataPage(String tjDate, String comnameSgs, String usenaturename, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflsgnSyxz(tjDate, comnameSgs, usenaturename);
+        java.util.List<AcdPflsgnSyxz> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflsgnSyxzDataPage(tjDate, comnameSgs, usenaturename, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflsgnKhqZgs> getPflsgnKhqZgsData(String tjDate, String comnameSgs, String comname, String khq) {
+        return reportTableMapper.getPflsgnKhqZgsData(tjDate, comnameSgs, comname, khq);
+    }
+    @Override
+    public PageResult<AcdPflsgnKhqZgs> getPflsgnKhqZgsDataPage(String tjDate, String comnameSgs, String comname, String khq, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflsgnKhqZgs(tjDate, comnameSgs, comname, khq);
+        java.util.List<AcdPflsgnKhqZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflsgnKhqZgsDataPage(tjDate, comnameSgs, comname, khq, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflsgnSyxzZgs> getPflsgnSyxzZgsData(String tjDate, String comnameSgs, String comname, String usenaturename) {
+        return reportTableMapper.getPflsgnSyxzZgsData(tjDate, comnameSgs, comname, usenaturename);
+    }
+    @Override
+    public PageResult<AcdPflsgnSyxzZgs> getPflsgnSyxzZgsDataPage(String tjDate, String comnameSgs, String comname, String usenaturename, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflsgnSyxzZgs(tjDate, comnameSgs, comname, usenaturename);
+        java.util.List<AcdPflsgnSyxzZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflsgnSyxzZgsDataPage(tjDate, comnameSgs, comname, usenaturename, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflsgnPpZgs> getPflsgnPpZgsData(String tjDate, String comnameSgs, String comname, String brandname) {
+        return reportTableMapper.getPflsgnPpZgsData(tjDate, comnameSgs, comname, brandname);
+    }
+    @Override
+    public PageResult<AcdPflsgnPpZgs> getPflsgnPpZgsDataPage(String tjDate, String comnameSgs, String comname, String brandname, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflsgnPpZgs(tjDate, comnameSgs, comname, brandname);
+        java.util.List<AcdPflsgnPpZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflsgnPpZgsDataPage(tjDate, comnameSgs, comname, brandname, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnZgs> getPflbdnZgsData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getPflbdnZgsData(tjDate, comnameSgs);
+    }
+    @Override
+    public PageResult<AcdPflbdnZgs> getPflbdnZgsDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnZgs(tjDate, comnameSgs);
+        java.util.List<AcdPflbdnZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnZgsDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnKhq> getPflbdnKhqData(String tjDate, String comnameSgs, String khq) {
+        return reportTableMapper.getPflbdnKhqData(tjDate, comnameSgs, khq);
+    }
+    @Override
+    public PageResult<AcdPflbdnKhq> getPflbdnKhqDataPage(String tjDate, String comnameSgs, String khq, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnKhq(tjDate, comnameSgs, khq);
+        java.util.List<AcdPflbdnKhq> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnKhqDataPage(tjDate, comnameSgs, khq, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnSyxz> getPflbdnSyxzData(String tjDate, String comnameSgs, String usenaturename) {
+        return reportTableMapper.getPflbdnSyxzData(tjDate, comnameSgs, usenaturename);
+    }
+    @Override
+    public PageResult<AcdPflbdnSyxz> getPflbdnSyxzDataPage(String tjDate, String comnameSgs, String usenaturename, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnSyxz(tjDate, comnameSgs, usenaturename);
+        java.util.List<AcdPflbdnSyxz> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnSyxzDataPage(tjDate, comnameSgs, usenaturename, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnPinpai> getPflbdnPinpaiData(String tjDate, String comnameSgs, String brandname) {
+        return reportTableMapper.getPflbdnPinpaiData(tjDate, comnameSgs, brandname);
+    }
+    @Override
+    public PageResult<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(String tjDate, String comnameSgs, String brandname, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnPinpai(tjDate, comnameSgs, brandname);
+        java.util.List<AcdPflbdnPinpai> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnPinpaiDataPage(tjDate, comnameSgs, brandname, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnXny> getPflbdnXnyData(String tjDate, String xnyflag) {
+        return reportTableMapper.getPflbdnXnyData(tjDate, xnyflag);
+    }
+    @Override
+    public PageResult<AcdPflbdnXny> getPflbdnXnyDataPage(String tjDate, String xnyflag, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnXny(tjDate, xnyflag);
+        java.util.List<AcdPflbdnXny> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnXnyDataPage(tjDate, xnyflag, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnSyxzZgs> getPflbdnSyxzZgsData(String tjDate, String comnameSgs, String comname, String usenaturename) {
+        return reportTableMapper.getPflbdnSyxzZgsData(tjDate, comnameSgs, comname, usenaturename);
+    }
+    @Override
+    public PageResult<AcdPflbdnSyxzZgs> getPflbdnSyxzZgsDataPage(String tjDate, String comnameSgs, String comname, String usenaturename, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnSyxzZgs(tjDate, comnameSgs, comname, usenaturename);
+        java.util.List<AcdPflbdnSyxzZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnSyxzZgsDataPage(tjDate, comnameSgs, comname, usenaturename, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnKhqZgs> getPflbdnKhqZgsData(String tjDate, String comnameSgs, String comname, String khq) {
+        return reportTableMapper.getPflbdnKhqZgsData(tjDate, comnameSgs, comname, khq);
+    }
+    @Override
+    public PageResult<AcdPflbdnKhqZgs> getPflbdnKhqZgsDataPage(String tjDate, String comnameSgs, String comname, String khq, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnKhqZgs(tjDate, comnameSgs, comname, khq);
+        java.util.List<AcdPflbdnKhqZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnKhqZgsDataPage(tjDate, comnameSgs, comname, khq, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnXnyZgs> getPflbdnXnyZgsData(String tjDate, String comnameSgs, String comname, String xnyflag) {
+        return reportTableMapper.getPflbdnXnyZgsData(tjDate, comnameSgs, comname, xnyflag);
+    }
+    @Override
+    public PageResult<AcdPflbdnXnyZgs> getPflbdnXnyZgsDataPage(String tjDate, String comnameSgs, String comname, String xnyflag, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnXnyZgs(tjDate, comnameSgs, comname, xnyflag);
+        java.util.List<AcdPflbdnXnyZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnXnyZgsDataPage(tjDate, comnameSgs, comname, xnyflag, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdPflbdnPpZgs> getPflbdnPpZgsData(String tjDate, String comnameSgs, String comname, String brandname) {
+        return reportTableMapper.getPflbdnPpZgsData(tjDate, comnameSgs, comname, brandname);
+    }
+    @Override
+    public PageResult<AcdPflbdnPpZgs> getPflbdnPpZgsDataPage(String tjDate, String comnameSgs, String comname, String brandname, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countPflbdnPpZgs(tjDate, comnameSgs, comname, brandname);
+        java.util.List<AcdPflbdnPpZgs> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getPflbdnPpZgsDataPage(tjDate, comnameSgs, comname, brandname, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdZhpflXz> getZhpflXzData(String tjDate, String xl) {
+        return reportTableMapper.getZhpflXzData(tjDate, xl);
+    }
+    @Override
+    public PageResult<AcdZhpflXz> getZhpflXzDataPage(String tjDate, String xl, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countZhpflXz(tjDate, xl);
+        java.util.List<AcdZhpflXz> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getZhpflXzDataPage(tjDate, xl, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    // ==================== 维修单位 (2026-06) ====================
+    @Override
+    public List<AcdZgsCbb> getZgsCbbData(String tjDate, String comnameSgs) {
+        return reportTableMapper.getZgsCbbData(tjDate, comnameSgs);
+    }
+    @Override
+    public PageResult<AcdZgsCbb> getZgsCbbDataPage(String tjDate, String comnameSgs, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countZgsCbb(tjDate, comnameSgs);
+        java.util.List<AcdZgsCbb> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getZgsCbbDataPage(tjDate, comnameSgs, offsetOf(current, size), size);
+        return new PageResult<>(records, total, current, size);
+    }
+
+    @Override
+    public List<AcdWxdwGjzb> getWxdwGjzbData(String tjDate, String comnameSgs, String repairfactoryname) {
+        return reportTableMapper.getWxdwGjzbData(tjDate, comnameSgs, repairfactoryname);
+    }
+    @Override
+    public PageResult<AcdWxdwGjzb> getWxdwGjzbDataPage(String tjDate, String comnameSgs, String repairfactoryname, int current, int size) {
+        current = normalizeCurrent(current); size = normalizeSize(size);
+        long total = reportTableMapper.countWxdwGjzb(tjDate, comnameSgs, repairfactoryname);
+        java.util.List<AcdWxdwGjzb> records = total == 0 ? java.util.Collections.emptyList()
+                : reportTableMapper.getWxdwGjzbDataPage(tjDate, comnameSgs, repairfactoryname, offsetOf(current, size), size);
         return new PageResult<>(records, total, current, size);
     }
 }

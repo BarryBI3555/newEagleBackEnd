@@ -30,6 +30,29 @@ import com.example.demo.entity.AcdDingsunWclMonth;
 import com.example.demo.entity.AcdDingsunZflMonth;
 import com.example.demo.entity.AcdRsGzlMonth;
 import com.example.demo.entity.AcdLisuanMonth;
+import com.example.demo.entity.AcdBaLaJaWjPk;
+import com.example.demo.entity.AcdZhouqiRy;
+import com.example.demo.entity.AcdPacllBmShishi;
+import com.example.demo.entity.AcdJieanlBm;
+import com.example.demo.entity.AcdJieanlRy;
+import com.example.demo.entity.AcdPacllCxZgs;
+import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdPflsgnSyxz;
+import com.example.demo.entity.AcdPflsgnKhqZgs;
+import com.example.demo.entity.AcdPflsgnSyxzZgs;
+import com.example.demo.entity.AcdPflsgnPpZgs;
+import com.example.demo.entity.AcdPflbdnZgs;
+import com.example.demo.entity.AcdPflbdnKhq;
+import com.example.demo.entity.AcdPflbdnSyxz;
+import com.example.demo.entity.AcdPflbdnPinpai;
+import com.example.demo.entity.AcdPflbdnXny;
+import com.example.demo.entity.AcdPflbdnSyxzZgs;
+import com.example.demo.entity.AcdPflbdnKhqZgs;
+import com.example.demo.entity.AcdPflbdnXnyZgs;
+import com.example.demo.entity.AcdPflbdnPpZgs;
+import com.example.demo.entity.AcdZhpflXz;
+import com.example.demo.entity.AcdZgsCbb;
+import com.example.demo.entity.AcdWxdwGjzb;
 import com.example.demo.entity.PageResult;
 import com.example.demo.entity.Result;
 import com.example.demo.service.ReportTableService;
@@ -1428,6 +1451,803 @@ public class ReportTableController {
         } catch (Exception e) {
             log.error("获取案均赔款-新能源（车险）分页失败", e);
             return Result.error("获取案均赔款-新能源（车险）分页失败", e);
+        }
+    }
+
+    // ==================== 2026-06 新增 7 张表 (list + page) ====================
+
+    /** 车险案件量-承保地 */
+    @GetMapping("/ba_la_ja_wj_pk/list")
+    public Result<List<AcdBaLaJaWjPk>> getBaLaJaWjPkList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_ba_la_ja_wj_pk");
+            }
+            return Result.success(reportTableService.getBaLaJaWjPkData(tjDate, comnameSgs));
+        } catch (Exception e) {
+            log.error("获取车险案件量-承保地失败", e);
+            return Result.error("获取车险案件量-承保地失败", e);
+        }
+    }
+
+    @GetMapping("/ba_la_ja_wj_pk/page")
+    public Result<PageResult<AcdBaLaJaWjPk>> getBaLaJaWjPkPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_ba_la_ja_wj_pk");
+            }
+            return Result.success(reportTableService.getBaLaJaWjPkDataPage(
+                    tjDate, comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取车险案件量-承保地分页失败", e);
+            return Result.error("获取车险案件量-承保地分页失败", e);
+        }
+    }
+
+    /** 周期-人员 */
+    @GetMapping("/zhouqi_ry/list")
+    public Result<List<AcdZhouqiRy>> getZhouqiRyList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_zhouqi_ry");
+            }
+            return Result.success(reportTableService.getZhouqiRyData(tjDate, comnameSgs));
+        } catch (Exception e) {
+            log.error("获取周期-人员失败", e);
+            return Result.error("获取周期-人员失败", e);
+        }
+    }
+
+    @GetMapping("/zhouqi_ry/page")
+    public Result<PageResult<AcdZhouqiRy>> getZhouqiRyPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_zhouqi_ry");
+            }
+            return Result.success(reportTableService.getZhouqiRyDataPage(
+                    tjDate, comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取周期-人员分页失败", e);
+            return Result.error("获取周期-人员分页失败", e);
+        }
+    }
+
+    /** 赔案处理率-部门实时（无 tjdate 控件） */
+    @GetMapping("/pacll_bm_shishi/list")
+    public Result<List<AcdPacllBmShishi>> getPacllBmShishiList(
+            @RequestParam(required = false) String comname
+    ) {
+        try {
+            return Result.success(reportTableService.getPacllBmShishiData(comname));
+        } catch (Exception e) {
+            log.error("获取赔案处理率-部门实时失败", e);
+            return Result.error("获取赔案处理率-部门实时失败", e);
+        }
+    }
+
+    @GetMapping("/pacll_bm_shishi/page")
+    public Result<PageResult<AcdPacllBmShishi>> getPacllBmShishiPage(
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            return Result.success(reportTableService.getPacllBmShishiDataPage(
+                    comname,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取赔案处理率-部门实时分页失败", e);
+            return Result.error("获取赔案处理率-部门实时分页失败", e);
+        }
+    }
+
+    /** 每日结案量-部门实时 */
+    @GetMapping("/jieanl_bm/list")
+    public Result<List<AcdJieanlBm>> getJieanlBmList(
+            @RequestParam(required = false) String tjDate
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_jieanl_bm");
+            }
+            return Result.success(reportTableService.getJieanlBmData(tjDate));
+        } catch (Exception e) {
+            log.error("获取每日结案量-部门实时失败", e);
+            return Result.error("获取每日结案量-部门实时失败", e);
+        }
+    }
+
+    @GetMapping("/jieanl_bm/page")
+    public Result<PageResult<AcdJieanlBm>> getJieanlBmPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_jieanl_bm");
+            }
+            return Result.success(reportTableService.getJieanlBmDataPage(
+                    tjDate,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取每日结案量-部门实时分页失败", e);
+            return Result.error("获取每日结案量-部门实时分页失败", e);
+        }
+    }
+
+    /** 每日结案量-人员实时 */
+    @GetMapping("/jieanl_ry/list")
+    public Result<List<AcdJieanlRy>> getJieanlRyList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comname
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_jieanl_ry");
+            }
+            return Result.success(reportTableService.getJieanlRyData(tjDate, comname));
+        } catch (Exception e) {
+            log.error("获取每日结案量-人员实时失败", e);
+            return Result.error("获取每日结案量-人员实时失败", e);
+        }
+    }
+
+    @GetMapping("/jieanl_ry/page")
+    public Result<PageResult<AcdJieanlRy>> getJieanlRyPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_jieanl_ry");
+            }
+            return Result.success(reportTableService.getJieanlRyDataPage(
+                    tjDate, comname,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取每日结案量-人员实时分页失败", e);
+            return Result.error("获取每日结案量-人员实时分页失败", e);
+        }
+    }
+
+    /** 车险结案率-支公司 */
+    @GetMapping("/pacll_cx_zgs/list")
+    public Result<List<AcdPacllCxZgs>> getPacllCxZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pacll_cx_zgs");
+            }
+            return Result.success(reportTableService.getPacllCxZgsData(tjDate, comnameSgs));
+        } catch (Exception e) {
+            log.error("获取车险结案率-支公司失败", e);
+            return Result.error("获取车险结案率-支公司失败", e);
+        }
+    }
+
+    @GetMapping("/pacll_cx_zgs/page")
+    public Result<PageResult<AcdPacllCxZgs>> getPacllCxZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pacll_cx_zgs");
+            }
+            return Result.success(reportTableService.getPacllCxZgsDataPage(
+                    tjDate, comnameSgs,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取车险结案率-支公司分页失败", e);
+            return Result.error("获取车险结案率-支公司分页失败", e);
+        }
+    }
+
+    /** 零结案-人员 */
+    @GetMapping("/lingjie_ry/list")
+    public Result<List<AcdLingjieRy>> getLingjieRyList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String groups,
+            @RequestParam(required = false) String username
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_lingjie_ry");
+            }
+            return Result.success(reportTableService.getLingjieRyData(tjDate, groups, username));
+        } catch (Exception e) {
+            log.error("获取零结案-人员失败", e);
+            return Result.error("获取零结案-人员失败", e);
+        }
+    }
+
+    @GetMapping("/lingjie_ry/page")
+    public Result<PageResult<AcdLingjieRy>> getLingjieRyPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String groups,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_lingjie_ry");
+            }
+            return Result.success(reportTableService.getLingjieRyDataPage(
+                    tjDate, groups, username,
+                    current == null ? 1 : current,
+                    size == null ? 20 : size));
+        } catch (Exception e) {
+            log.error("获取零结案-人员分页失败", e);
+            return Result.error("获取零结案-人员分页失败", e);
+        }
+    }
+
+    // ==================== 成本管控新增 14 张表 (2026-06) ====================
+
+    /** 事故年赔付率-使用性质 */
+    @GetMapping("/pflsgn_syxz/list")
+    public Result<List<AcdPflsgnSyxz>> getPflsgnSyxzList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String usenaturename) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_syxz");
+            }
+            return Result.success(reportTableService.getPflsgnSyxzData(tjDate, comnameSgs, usenaturename));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-使用性质失败", e);
+        }
+    }
+    @GetMapping("/pflsgn_syxz/page")
+    public Result<PageResult<AcdPflsgnSyxz>> getPflsgnSyxzPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String usenaturename,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_syxz");
+            }
+            return Result.success(reportTableService.getPflsgnSyxzDataPage(tjDate, comnameSgs, usenaturename,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-使用性质分页失败", e);
+        }
+    }
+
+    /** 事故年赔付率-支公司-客户群 */
+    @GetMapping("/pflsgn_khq_zgs/list")
+    public Result<List<AcdPflsgnKhqZgs>> getPflsgnKhqZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String khq) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_khq_zgs");
+            }
+            return Result.success(reportTableService.getPflsgnKhqZgsData(tjDate, comnameSgs, comname, khq));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-支公司-客户群失败", e);
+        }
+    }
+    @GetMapping("/pflsgn_khq_zgs/page")
+    public Result<PageResult<AcdPflsgnKhqZgs>> getPflsgnKhqZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String khq,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_khq_zgs");
+            }
+            return Result.success(reportTableService.getPflsgnKhqZgsDataPage(tjDate, comnameSgs, comname, khq,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-支公司-客户群分页失败", e);
+        }
+    }
+
+    /** 事故年赔付率-支公司-使用性质 */
+    @GetMapping("/pflsgn_syxz_zgs/list")
+    public Result<List<AcdPflsgnSyxzZgs>> getPflsgnSyxzZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String usenaturename) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_syxz_zgs");
+            }
+            return Result.success(reportTableService.getPflsgnSyxzZgsData(tjDate, comnameSgs, comname, usenaturename));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-支公司-使用性质失败", e);
+        }
+    }
+    @GetMapping("/pflsgn_syxz_zgs/page")
+    public Result<PageResult<AcdPflsgnSyxzZgs>> getPflsgnSyxzZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String usenaturename,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_syxz_zgs");
+            }
+            return Result.success(reportTableService.getPflsgnSyxzZgsDataPage(tjDate, comnameSgs, comname, usenaturename,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-支公司-使用性质分页失败", e);
+        }
+    }
+
+    /** 事故年赔付率-支公司-品牌 */
+    @GetMapping("/pflsgn_pp_zgs/list")
+    public Result<List<AcdPflsgnPpZgs>> getPflsgnPpZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String brandname) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_pp_zgs");
+            }
+            return Result.success(reportTableService.getPflsgnPpZgsData(tjDate, comnameSgs, comname, brandname));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-支公司-品牌失败", e);
+        }
+    }
+    @GetMapping("/pflsgn_pp_zgs/page")
+    public Result<PageResult<AcdPflsgnPpZgs>> getPflsgnPpZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String brandname,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_pp_zgs");
+            }
+            return Result.success(reportTableService.getPflsgnPpZgsDataPage(tjDate, comnameSgs, comname, brandname,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取事故年赔付率-支公司-品牌分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-支公司 */
+    @GetMapping("/pflbdn_zgs/list")
+    public Result<List<AcdPflbdnZgs>> getPflbdnZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnZgsData(tjDate, comnameSgs));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_zgs/page")
+    public Result<PageResult<AcdPflbdnZgs>> getPflbdnZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnZgsDataPage(tjDate, comnameSgs,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-客户群 */
+    @GetMapping("/pflbdn_khq/list")
+    public Result<List<AcdPflbdnKhq>> getPflbdnKhqList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String khq) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_khq");
+            }
+            return Result.success(reportTableService.getPflbdnKhqData(tjDate, comnameSgs, khq));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-客户群失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_khq/page")
+    public Result<PageResult<AcdPflbdnKhq>> getPflbdnKhqPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String khq,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_khq");
+            }
+            return Result.success(reportTableService.getPflbdnKhqDataPage(tjDate, comnameSgs, khq,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-客户群分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-使用性质 */
+    @GetMapping("/pflbdn_syxz/list")
+    public Result<List<AcdPflbdnSyxz>> getPflbdnSyxzList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String usenaturename) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_syxz");
+            }
+            return Result.success(reportTableService.getPflbdnSyxzData(tjDate, comnameSgs, usenaturename));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-使用性质失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_syxz/page")
+    public Result<PageResult<AcdPflbdnSyxz>> getPflbdnSyxzPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String usenaturename,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_syxz");
+            }
+            return Result.success(reportTableService.getPflbdnSyxzDataPage(tjDate, comnameSgs, usenaturename,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-使用性质分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-品牌 */
+    @GetMapping("/pflbdn_pinpai/list")
+    public Result<List<AcdPflbdnPinpai>> getPflbdnPinpaiList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String brandname) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pinpai");
+            }
+            return Result.success(reportTableService.getPflbdnPinpaiData(tjDate, comnameSgs, brandname));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-品牌失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_pinpai/page")
+    public Result<PageResult<AcdPflbdnPinpai>> getPflbdnPinpaiPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String brandname,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pinpai");
+            }
+            return Result.success(reportTableService.getPflbdnPinpaiDataPage(tjDate, comnameSgs, brandname,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-品牌分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-新能源 */
+    @GetMapping("/pflbdn_xny/list")
+    public Result<List<AcdPflbdnXny>> getPflbdnXnyList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String xnyflag) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_xny");
+            }
+            return Result.success(reportTableService.getPflbdnXnyData(tjDate, xnyflag));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-新能源失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_xny/page")
+    public Result<PageResult<AcdPflbdnXny>> getPflbdnXnyPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String xnyflag,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_xny");
+            }
+            return Result.success(reportTableService.getPflbdnXnyDataPage(tjDate, xnyflag,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-新能源分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-支公司-使用性质 */
+    @GetMapping("/pflbdn_syxz_zgs/list")
+    public Result<List<AcdPflbdnSyxzZgs>> getPflbdnSyxzZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String usenaturename) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_syxz_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnSyxzZgsData(tjDate, comnameSgs, comname, usenaturename));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-使用性质失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_syxz_zgs/page")
+    public Result<PageResult<AcdPflbdnSyxzZgs>> getPflbdnSyxzZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String usenaturename,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_syxz_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnSyxzZgsDataPage(tjDate, comnameSgs, comname, usenaturename,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-使用性质分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-支公司-客户群 */
+    @GetMapping("/pflbdn_khq_zgs/list")
+    public Result<List<AcdPflbdnKhqZgs>> getPflbdnKhqZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String khq) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_khq_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnKhqZgsData(tjDate, comnameSgs, comname, khq));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-客户群失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_khq_zgs/page")
+    public Result<PageResult<AcdPflbdnKhqZgs>> getPflbdnKhqZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String khq,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_khq_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnKhqZgsDataPage(tjDate, comnameSgs, comname, khq,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-客户群分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-支公司-新能源 */
+    @GetMapping("/pflbdn_xny_zgs/list")
+    public Result<List<AcdPflbdnXnyZgs>> getPflbdnXnyZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String xnyflag) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_xny_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnXnyZgsData(tjDate, comnameSgs, comname, xnyflag));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-新能源失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_xny_zgs/page")
+    public Result<PageResult<AcdPflbdnXnyZgs>> getPflbdnXnyZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String xnyflag,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_xny_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnXnyZgsDataPage(tjDate, comnameSgs, comname, xnyflag,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-新能源分页失败", e);
+        }
+    }
+
+    /** 保单年赔付率-支公司-品牌 */
+    @GetMapping("/pflbdn_pp_zgs/list")
+    public Result<List<AcdPflbdnPpZgs>> getPflbdnPpZgsList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String brandname) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pp_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnPpZgsData(tjDate, comnameSgs, comname, brandname));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-品牌失败", e);
+        }
+    }
+    @GetMapping("/pflbdn_pp_zgs/page")
+    public Result<PageResult<AcdPflbdnPpZgs>> getPflbdnPpZgsPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String brandname,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pp_zgs");
+            }
+            return Result.success(reportTableService.getPflbdnPpZgsDataPage(tjDate, comnameSgs, comname, brandname,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取保单年赔付率-支公司-品牌分页失败", e);
+        }
+    }
+
+    /** 综合赔付率-险种 */
+    @GetMapping("/zhpfl_xz/list")
+    public Result<List<AcdZhpflXz>> getZhpflXzList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String xl) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_zhpfl_xz");
+            }
+            return Result.success(reportTableService.getZhpflXzData(tjDate, xl));
+        } catch (Exception e) {
+            return Result.error("获取综合赔付率-险种失败", e);
+        }
+    }
+    @GetMapping("/zhpfl_xz/page")
+    public Result<PageResult<AcdZhpflXz>> getZhpflXzPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String xl,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_zhpfl_xz");
+            }
+            return Result.success(reportTableService.getZhpflXzDataPage(tjDate, xl,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取综合赔付率-险种分页失败", e);
+        }
+    }
+
+    // ==================== 维修单位 (2026-06) ====================
+    /** 各支公司产保比 */
+    @GetMapping("/zgs_cbb/list")
+    public Result<List<AcdZgsCbb>> getZgsCbbList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_zgs_cbb");
+            }
+            return Result.success(reportTableService.getZgsCbbData(tjDate, comnameSgs));
+        } catch (Exception e) {
+            return Result.error("获取各支公司产保比失败", e);
+        }
+    }
+    @GetMapping("/zgs_cbb/page")
+    public Result<PageResult<AcdZgsCbb>> getZgsCbbPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_zgs_cbb");
+            }
+            return Result.success(reportTableService.getZgsCbbDataPage(tjDate, comnameSgs,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取各支公司产保比分页失败", e);
+        }
+    }
+
+    /** 维修单位关键指标 */
+    @GetMapping("/wxdw_gjzb/list")
+    public Result<List<AcdWxdwGjzb>> getWxdwGjzbList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String repairfactoryname) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_wxdw_gjzb");
+            }
+            return Result.success(reportTableService.getWxdwGjzbData(tjDate, comnameSgs, repairfactoryname));
+        } catch (Exception e) {
+            return Result.error("获取维修单位关键指标失败", e);
+        }
+    }
+    @GetMapping("/wxdw_gjzb/page")
+    public Result<PageResult<AcdWxdwGjzb>> getWxdwGjzbPage(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comnameSgs,
+            @RequestParam(required = false) String repairfactoryname,
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_wxdw_gjzb");
+            }
+            return Result.success(reportTableService.getWxdwGjzbDataPage(tjDate, comnameSgs, repairfactoryname,
+                    current == null ? 1 : current, size == null ? 20 : size));
+        } catch (Exception e) {
+            return Result.error("获取维修单位关键指标分页失败", e);
         }
     }
 }
