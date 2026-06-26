@@ -75,7 +75,6 @@ public final class TableNames {
             "acd_pflbdn_zgs",
             "acd_pflbdn_khq",
             "acd_pflbdn_syxz",
-            "acd_pflbdn_pinpai",
             "acd_pflbdn_xny",
             "acd_pflbdn_syxz_zgs",
             "acd_pflbdn_khq_zgs",
