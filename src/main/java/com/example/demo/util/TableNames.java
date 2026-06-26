@@ -71,7 +71,7 @@ public final class TableNames {
             "acd_pflsgn_syxz",
             "acd_pflsgn_khq_zgs",
             "acd_pflsgn_syxz_zgs",
-            "acd_pflsgn_pp_zgs",
+            "acd_pflsgn_pinpai_zgs",
             "acd_pflbdn_zgs",
             "acd_pflbdn_khq",
             "acd_pflbdn_syxz",
@@ -80,8 +80,8 @@ public final class TableNames {
             "acd_pflbdn_syxz_zgs",
             "acd_pflbdn_khq_zgs",
             "acd_pflbdn_xny_zgs",
-            "acd_pflbdn_pp_zgs",
-            "acd_zhpfl_xz",
+            "acd_pflbdn_pinpai_zgs",
+            "acd_zhpfl_xl3",
             
             // 2026-06 新增（维修单位 2 张表）
             "acd_zgs_cbb",

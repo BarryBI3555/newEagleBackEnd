@@ -1802,7 +1802,7 @@ public class ReportTableController {
             @RequestParam(required = false) String brandname) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_pp_zgs");
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_pinpai_zgs");
             }
             return Result.success(reportTableService.getPflsgnPpZgsData(tjDate, comnameSgs, comname, brandname));
         } catch (Exception e) {
@@ -1819,7 +1819,7 @@ public class ReportTableController {
             @RequestParam(required = false, defaultValue = "20") Integer size) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_pp_zgs");
+                tjDate = reportTableService.getMaxTjDate("acd_pflsgn_pinpai_zgs");
             }
             return Result.success(reportTableService.getPflsgnPpZgsDataPage(tjDate, comnameSgs, comname, brandname,
                     current == null ? 1 : current, size == null ? 20 : size));
@@ -2103,7 +2103,7 @@ public class ReportTableController {
             @RequestParam(required = false) String brandname) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pp_zgs");
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pinpai_zgs");
             }
             return Result.success(reportTableService.getPflbdnPpZgsData(tjDate, comnameSgs, comname, brandname));
         } catch (Exception e) {
@@ -2120,7 +2120,7 @@ public class ReportTableController {
             @RequestParam(required = false, defaultValue = "20") Integer size) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pp_zgs");
+                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pinpai_zgs");
             }
             return Result.success(reportTableService.getPflbdnPpZgsDataPage(tjDate, comnameSgs, comname, brandname,
                     current == null ? 1 : current, size == null ? 20 : size));

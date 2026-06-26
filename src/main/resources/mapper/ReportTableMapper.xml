@@ -1620,7 +1620,7 @@
     <!-- 事故年赔付率-支公司-品牌 -->
     <select id="getPflsgnPpZgsData" resultType="com.example.demo.entity.AcdPflsgnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflsgn_pp_zgs
+        from acd_pflsgn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -1635,7 +1635,7 @@
     </select>
     <select id="getPflsgnPpZgsDataPage" resultType="com.example.demo.entity.AcdPflsgnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflsgn_pp_zgs
+        from acd_pflsgn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -1650,7 +1650,7 @@
         limit #{limit} offset #{offset}
     </select>
     <select id="countPflsgnPpZgs" resultType="java.lang.Long">
-        select count(*) from acd_pflsgn_pp_zgs
+        select count(*) from acd_pflsgn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -1971,7 +1971,7 @@
     <!-- 保单年赔付率-支公司-品牌 -->
     <select id="getPflbdnPpZgsData" resultType="com.example.demo.entity.AcdPflbdnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflbdn_pp_zgs
+        from acd_pflbdn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -1986,7 +1986,7 @@
     </select>
     <select id="getPflbdnPpZgsDataPage" resultType="com.example.demo.entity.AcdPflbdnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflbdn_pp_zgs
+        from acd_pflbdn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -2001,7 +2001,7 @@
         limit #{limit} offset #{offset}
     </select>
     <select id="countPflbdnPpZgs" resultType="java.lang.Long">
-        select count(*) from acd_pflbdn_pp_zgs
+        select count(*) from acd_pflbdn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
