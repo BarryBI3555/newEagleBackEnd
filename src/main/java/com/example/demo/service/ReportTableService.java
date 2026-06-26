@@ -43,7 +43,6 @@ import com.example.demo.entity.AcdPflsgnPpZgs;
 import com.example.demo.entity.AcdPflbdnZgs;
 import com.example.demo.entity.AcdPflbdnKhq;
 import com.example.demo.entity.AcdPflbdnSyxz;
-import com.example.demo.entity.AcdPflbdnPinpai;
 import com.example.demo.entity.AcdPflbdnXny;
 import com.example.demo.entity.AcdPflbdnSyxzZgs;
 import com.example.demo.entity.AcdPflbdnKhqZgs;
@@ -338,10 +337,6 @@ public interface ReportTableService {
     /** 保单年赔付率-使用性质 */
     List<AcdPflbdnSyxz> getPflbdnSyxzData(String tjDate, String comnameSgs, String usenaturename);
     PageResult<AcdPflbdnSyxz> getPflbdnSyxzDataPage(String tjDate, String comnameSgs, String usenaturename, int current, int size);
-
-    /** 保单年赔付率-品牌 (无支公司) */
-    List<AcdPflbdnPinpai> getPflbdnPinpaiData(String tjDate, String comnameSgs, String brandname);
-    PageResult<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(String tjDate, String comnameSgs, String brandname, int current, int size);
 
     /** 保单年赔付率-新能源 */
     List<AcdPflbdnXny> getPflbdnXnyData(String tjDate, String xnyflag);

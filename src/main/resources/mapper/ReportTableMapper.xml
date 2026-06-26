@@ -1765,43 +1765,6 @@
         </if>
     </select>
 
-    <!-- 保单年赔付率-品牌 (无支公司) -->
-    <select id="getPflbdnPinpaiData" resultType="com.example.demo.entity.AcdPflbdnPinpai">
-        select *, tjdate as maxTjTime
-        from acd_pflbdn_pinpai
-        where tjdate = #{tjDate}
-        <if test="comnameSgs != null and comnameSgs != ''">
-            and comname_sgs like concat('%', #{comnameSgs}, '%')
-        </if>
-        <if test="brandname != null and brandname != ''">
-            and brandname like concat('%', #{brandname}, '%')
-        </if>
-        order by sgnd_pfl desc
-    </select>
-    <select id="getPflbdnPinpaiDataPage" resultType="com.example.demo.entity.AcdPflbdnPinpai">
-        select *, tjdate as maxTjTime
-        from acd_pflbdn_pinpai
-        where tjdate = #{tjDate}
-        <if test="comnameSgs != null and comnameSgs != ''">
-            and comname_sgs like concat('%', #{comnameSgs}, '%')
-        </if>
-        <if test="brandname != null and brandname != ''">
-            and brandname like concat('%', #{brandname}, '%')
-        </if>
-        order by sgnd_pfl desc
-        limit #{limit} offset #{offset}
-    </select>
-    <select id="countPflbdnPinpai" resultType="java.lang.Long">
-        select count(*) from acd_pflbdn_pinpai
-        where tjdate = #{tjDate}
-        <if test="comnameSgs != null and comnameSgs != ''">
-            and comname_sgs like concat('%', #{comnameSgs}, '%')
-        </if>
-        <if test="brandname != null and brandname != ''">
-            and brandname like concat('%', #{brandname}, '%')
-        </if>
-    </select>
-
     <!-- 保单年赔付率-新能源 -->
     <select id="getPflbdnXnyData" resultType="com.example.demo.entity.AcdPflbdnXny">
         select *, tjdate as maxTjTime
@@ -2017,7 +1980,7 @@
     <!-- 综合赔付率-险种 -->
     <select id="getZhpflXzData" resultType="com.example.demo.entity.AcdZhpflXz">
         select *, tjdate as maxTjTime
-        from acd_zhpfl_xz
+        from acd_zhpfl_xl3
         where tjdate = #{tjDate}
         <if test="xl != null and xl != ''">
             and xl like concat('%', #{xl}, '%')
@@ -2026,7 +1989,7 @@
     </select>
     <select id="getZhpflXzDataPage" resultType="com.example.demo.entity.AcdZhpflXz">
         select *, tjdate as maxTjTime
-        from acd_zhpfl_xz
+        from acd_zhpfl_xl3
         where tjdate = #{tjDate}
         <if test="xl != null and xl != ''">
             and xl like concat('%', #{xl}, '%')
@@ -2035,7 +1998,7 @@
         limit #{limit} offset #{offset}
     </select>
     <select id="countZhpflXz" resultType="java.lang.Long">
-        select count(*) from acd_zhpfl_xz
+        select count(*) from acd_zhpfl_xl3
         where tjdate = #{tjDate}
         <if test="xl != null and xl != ''">
             and xl like concat('%', #{xl}, '%')

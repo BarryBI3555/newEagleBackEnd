@@ -43,7 +43,6 @@ import com.example.demo.entity.AcdPflsgnPpZgs;
 import com.example.demo.entity.AcdPflbdnZgs;
 import com.example.demo.entity.AcdPflbdnKhq;
 import com.example.demo.entity.AcdPflbdnSyxz;
-import com.example.demo.entity.AcdPflbdnPinpai;
 import com.example.demo.entity.AcdPflbdnXny;
 import com.example.demo.entity.AcdPflbdnSyxzZgs;
 import com.example.demo.entity.AcdPflbdnKhqZgs;
@@ -802,22 +801,6 @@ public interface ReportTableMapper{
             @Param("tjDate") String tjDate,
             @Param("comnameSgs") String comnameSgs,
             @Param("usenaturename") String usenaturename);
-
-    /** 保单年赔付率-品牌 (无支公司) */
-    List<AcdPflbdnPinpai> getPflbdnPinpaiData(
-            @Param("tjDate") String tjDate,
-            @Param("comnameSgs") String comnameSgs,
-            @Param("brandname") String brandname);
-    List<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(
-            @Param("tjDate") String tjDate,
-            @Param("comnameSgs") String comnameSgs,
-            @Param("brandname") String brandname,
-            @Param("offset") int offset,
-            @Param("limit") int limit);
-    long countPflbdnPinpai(
-            @Param("tjDate") String tjDate,
-            @Param("comnameSgs") String comnameSgs,
-            @Param("brandname") String brandname);
 
     /** 保单年赔付率-新能源 */
     List<AcdPflbdnXny> getPflbdnXnyData(

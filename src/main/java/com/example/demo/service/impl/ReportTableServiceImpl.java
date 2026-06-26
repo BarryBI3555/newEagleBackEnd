@@ -43,7 +43,6 @@ import com.example.demo.entity.AcdPflsgnPpZgs;
 import com.example.demo.entity.AcdPflbdnZgs;
 import com.example.demo.entity.AcdPflbdnKhq;
 import com.example.demo.entity.AcdPflbdnSyxz;
-import com.example.demo.entity.AcdPflbdnPinpai;
 import com.example.demo.entity.AcdPflbdnXny;
 import com.example.demo.entity.AcdPflbdnSyxzZgs;
 import com.example.demo.entity.AcdPflbdnKhqZgs;
@@ -827,19 +826,6 @@ public class ReportTableServiceImpl implements ReportTableService {
         long total = reportTableMapper.countPflbdnSyxz(tjDate, comnameSgs, usenaturename);
         java.util.List<AcdPflbdnSyxz> records = total == 0 ? java.util.Collections.emptyList()
                 : reportTableMapper.getPflbdnSyxzDataPage(tjDate, comnameSgs, usenaturename, offsetOf(current, size), size);
-        return new PageResult<>(records, total, current, size);
-    }
-
-    @Override
-    public List<AcdPflbdnPinpai> getPflbdnPinpaiData(String tjDate, String comnameSgs, String brandname) {
-        return reportTableMapper.getPflbdnPinpaiData(tjDate, comnameSgs, brandname);
-    }
-    @Override
-    public PageResult<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(String tjDate, String comnameSgs, String brandname, int current, int size) {
-        current = normalizeCurrent(current); size = normalizeSize(size);
-        long total = reportTableMapper.countPflbdnPinpai(tjDate, comnameSgs, brandname);
-        java.util.List<AcdPflbdnPinpai> records = total == 0 ? java.util.Collections.emptyList()
-                : reportTableMapper.getPflbdnPinpaiDataPage(tjDate, comnameSgs, brandname, offsetOf(current, size), size);
         return new PageResult<>(records, total, current, size);
     }
 

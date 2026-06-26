@@ -43,7 +43,7 @@ import com.example.demo.entity.AcdPflsgnPpZgs;
 import com.example.demo.entity.AcdPflbdnZgs;
 import com.example.demo.entity.AcdPflbdnKhq;
 import com.example.demo.entity.AcdPflbdnSyxz;
-import com.example.demo.entity.AcdPflbdnPinpai;
+
 import com.example.demo.entity.AcdPflbdnXny;
 import com.example.demo.entity.AcdPflbdnSyxzZgs;
 import com.example.demo.entity.AcdPflbdnKhqZgs;
@@ -1925,39 +1925,6 @@ public class ReportTableController {
         }
     }
 
-    /** 保单年赔付率-品牌 */
-    @GetMapping("/pflbdn_pinpai/list")
-    public Result<List<AcdPflbdnPinpai>> getPflbdnPinpaiList(
-            @RequestParam(required = false) String tjDate,
-            @RequestParam(required = false) String comnameSgs,
-            @RequestParam(required = false) String brandname) {
-        try {
-            if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pinpai");
-            }
-            return Result.success(reportTableService.getPflbdnPinpaiData(tjDate, comnameSgs, brandname));
-        } catch (Exception e) {
-            return Result.error("获取保单年赔付率-品牌失败", e);
-        }
-    }
-    @GetMapping("/pflbdn_pinpai/page")
-    public Result<PageResult<AcdPflbdnPinpai>> getPflbdnPinpaiPage(
-            @RequestParam(required = false) String tjDate,
-            @RequestParam(required = false) String comnameSgs,
-            @RequestParam(required = false) String brandname,
-            @RequestParam(required = false, defaultValue = "1") Integer current,
-            @RequestParam(required = false, defaultValue = "20") Integer size) {
-        try {
-            if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_pflbdn_pinpai");
-            }
-            return Result.success(reportTableService.getPflbdnPinpaiDataPage(tjDate, comnameSgs, brandname,
-                    current == null ? 1 : current, size == null ? 20 : size));
-        } catch (Exception e) {
-            return Result.error("获取保单年赔付率-品牌分页失败", e);
-        }
-    }
-
     /** 保单年赔付率-新能源 */
     @GetMapping("/pflbdn_xny/list")
     public Result<List<AcdPflbdnXny>> getPflbdnXnyList(
@@ -2136,7 +2103,7 @@ public class ReportTableController {
             @RequestParam(required = false) String xl) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_zhpfl_xz");
+                tjDate = reportTableService.getMaxTjDate("acd_zhpfl_xl3");
             }
             return Result.success(reportTableService.getZhpflXzData(tjDate, xl));
         } catch (Exception e) {
@@ -2151,7 +2118,7 @@ public class ReportTableController {
             @RequestParam(required = false, defaultValue = "20") Integer size) {
         try {
             if (tjDate == null || tjDate.trim().isEmpty()) {
-                tjDate = reportTableService.getMaxTjDate("acd_zhpfl_xz");
+                tjDate = reportTableService.getMaxTjDate("acd_zhpfl_xl3");
             }
             return Result.success(reportTableService.getZhpflXzDataPage(tjDate, xl,
                     current == null ? 1 : current, size == null ? 20 : size));
