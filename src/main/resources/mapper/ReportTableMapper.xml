@@ -1382,32 +1382,6 @@
         </if>
     </select>
 
-    <!-- 赔案处理率-部门实时（无 tjdate 控件） -->
-    <select id="getPacllBmShishiData" resultType="com.example.demo.entity.AcdPacllBmShishi">
-        select * from acd_pacll_bm_shishi
-        where 1 = 1
-        <if test="comname != null and comname != ''">
-            and comname like concat('%', #{comname}, '%')
-        </if>
-        order by idd
-    </select>
-    <select id="getPacllBmShishiDataPage" resultType="com.example.demo.entity.AcdPacllBmShishi">
-        select * from acd_pacll_bm_shishi
-        where 1 = 1
-        <if test="comname != null and comname != ''">
-            and comname like concat('%', #{comname}, '%')
-        </if>
-        order by idd
-        limit #{limit} offset #{offset}
-    </select>
-    <select id="countPacllBmShishi" resultType="java.lang.Long">
-        select count(*) from acd_pacll_bm_shishi
-        where 1 = 1
-        <if test="comname != null and comname != ''">
-            and comname like concat('%', #{comname}, '%')
-        </if>
-    </select>
-
     <!-- 每日结案量-部门实时 -->
     <select id="getJieanlBmData" resultType="com.example.demo.entity.AcdJieanlBm">
         select *, tjdate as maxTjTime from acd_jieanl_bm
@@ -1646,7 +1620,7 @@
     <!-- 事故年赔付率-支公司-品牌 -->
     <select id="getPflsgnPpZgsData" resultType="com.example.demo.entity.AcdPflsgnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflsgn_pp_zgs
+        from acd_pflsgn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -1661,7 +1635,7 @@
     </select>
     <select id="getPflsgnPpZgsDataPage" resultType="com.example.demo.entity.AcdPflsgnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflsgn_pp_zgs
+        from acd_pflsgn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -1676,7 +1650,7 @@
         limit #{limit} offset #{offset}
     </select>
     <select id="countPflsgnPpZgs" resultType="java.lang.Long">
-        select count(*) from acd_pflsgn_pp_zgs
+        select count(*) from acd_pflsgn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -1788,43 +1762,6 @@
         </if>
         <if test="usenaturename != null and usenaturename != ''">
             and usenaturename like concat('%', #{usenaturename}, '%')
-        </if>
-    </select>
-
-    <!-- 保单年赔付率-品牌 (无支公司) -->
-    <select id="getPflbdnPinpaiData" resultType="com.example.demo.entity.AcdPflbdnPinpai">
-        select *, tjdate as maxTjTime
-        from acd_pflbdn_pinpai
-        where tjdate = #{tjDate}
-        <if test="comnameSgs != null and comnameSgs != ''">
-            and comname_sgs like concat('%', #{comnameSgs}, '%')
-        </if>
-        <if test="brandname != null and brandname != ''">
-            and brandname like concat('%', #{brandname}, '%')
-        </if>
-        order by sgnd_pfl desc
-    </select>
-    <select id="getPflbdnPinpaiDataPage" resultType="com.example.demo.entity.AcdPflbdnPinpai">
-        select *, tjdate as maxTjTime
-        from acd_pflbdn_pinpai
-        where tjdate = #{tjDate}
-        <if test="comnameSgs != null and comnameSgs != ''">
-            and comname_sgs like concat('%', #{comnameSgs}, '%')
-        </if>
-        <if test="brandname != null and brandname != ''">
-            and brandname like concat('%', #{brandname}, '%')
-        </if>
-        order by sgnd_pfl desc
-        limit #{limit} offset #{offset}
-    </select>
-    <select id="countPflbdnPinpai" resultType="java.lang.Long">
-        select count(*) from acd_pflbdn_pinpai
-        where tjdate = #{tjDate}
-        <if test="comnameSgs != null and comnameSgs != ''">
-            and comname_sgs like concat('%', #{comnameSgs}, '%')
-        </if>
-        <if test="brandname != null and brandname != ''">
-            and brandname like concat('%', #{brandname}, '%')
         </if>
     </select>
 
@@ -1997,7 +1934,7 @@
     <!-- 保单年赔付率-支公司-品牌 -->
     <select id="getPflbdnPpZgsData" resultType="com.example.demo.entity.AcdPflbdnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflbdn_pp_zgs
+        from acd_pflbdn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -2012,7 +1949,7 @@
     </select>
     <select id="getPflbdnPpZgsDataPage" resultType="com.example.demo.entity.AcdPflbdnPpZgs">
         select *, tjdate as maxTjTime
-        from acd_pflbdn_pp_zgs
+        from acd_pflbdn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -2027,7 +1964,7 @@
         limit #{limit} offset #{offset}
     </select>
     <select id="countPflbdnPpZgs" resultType="java.lang.Long">
-        select count(*) from acd_pflbdn_pp_zgs
+        select count(*) from acd_pflbdn_pinpai_zgs
         where tjdate = #{tjDate}
         <if test="comnameSgs != null and comnameSgs != ''">
             and comname_sgs like concat('%', #{comnameSgs}, '%')
@@ -2043,7 +1980,7 @@
     <!-- 综合赔付率-险种 -->
     <select id="getZhpflXzData" resultType="com.example.demo.entity.AcdZhpflXz">
         select *, tjdate as maxTjTime
-        from acd_zhpfl_xz
+        from acd_zhpfl_xl3
         where tjdate = #{tjDate}
         <if test="xl != null and xl != ''">
             and xl like concat('%', #{xl}, '%')
@@ -2052,7 +1989,7 @@
     </select>
     <select id="getZhpflXzDataPage" resultType="com.example.demo.entity.AcdZhpflXz">
         select *, tjdate as maxTjTime
-        from acd_zhpfl_xz
+        from acd_zhpfl_xl3
         where tjdate = #{tjDate}
         <if test="xl != null and xl != ''">
             and xl like concat('%', #{xl}, '%')
@@ -2061,7 +1998,7 @@
         limit #{limit} offset #{offset}
     </select>
     <select id="countZhpflXz" resultType="java.lang.Long">
-        select count(*) from acd_zhpfl_xz
+        select count(*) from acd_zhpfl_xl3
         where tjdate = #{tjDate}
         <if test="xl != null and xl != ''">
             and xl like concat('%', #{xl}, '%')
@@ -2132,6 +2069,162 @@
         <if test="repairfactoryname != null and repairfactoryname != ''">
             and repairfactoryname like concat('%', #{repairfactoryname}, '%')
         </if>
+    </select>
+
+    <!-- ==================== 车均定损 (2026-06) ==================== -->
+    <!-- 车均定损-人员 -->
+    <select id="getChejunRyData" resultType="com.example.demo.entity.AcdChejunRy">
+        select *, tjdate as maxTjTime
+        from acd_chejun_ry
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comname_sgs, comname, username
+    </select>
+    <select id="getChejunRyDataPage" resultType="com.example.demo.entity.AcdChejunRy">
+        select *, tjdate as maxTjTime
+        from acd_chejun_ry
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comname_sgs, comname, username
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countChejunRy" resultType="java.lang.Long">
+        select count(*) from acd_chejun_ry
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 车均定损-处理部门 -->
+    <select id="getChejunClbmData" resultType="com.example.demo.entity.AcdChejunClbm">
+        select *, tjdate as maxTjTime
+        from acd_chejun_clbm
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comname_sgs, comname
+    </select>
+    <select id="getChejunClbmDataPage" resultType="com.example.demo.entity.AcdChejunClbm">
+        select *, tjdate as maxTjTime
+        from acd_chejun_clbm
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comname_sgs, comname
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countChejunClbm" resultType="java.lang.Long">
+        select count(*) from acd_chejun_clbm
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 车均定损-定损区域 -->
+    <select id="getChejunBmData" resultType="com.example.demo.entity.AcdChejunBm">
+        select *, tjdate as maxTjTime
+        from acd_chejun_bm
+        where tjdate = #{tjDate}
+        <if test="dsqy != null and dsqy != ''">
+            and dsqy like concat('%', #{dsqy}, '%')
+        </if>
+        order by comcode
+    </select>
+    <select id="getChejunBmDataPage" resultType="com.example.demo.entity.AcdChejunBm">
+        select *, tjdate as maxTjTime
+        from acd_chejun_bm
+        where tjdate = #{tjDate}
+        <if test="dsqy != null and dsqy != ''">
+            and dsqy like concat('%', #{dsqy}, '%')
+        </if>
+        order by comcode
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countChejunBm" resultType="java.lang.Long">
+        select count(*) from acd_chejun_bm
+        where tjdate = #{tjDate}
+        <if test="dsqy != null and dsqy != ''">
+            and dsqy like concat('%', #{dsqy}, '%')
+        </if>
+    </select>
+
+    <!-- 车均定损-市公司 -->
+    <select id="getChejunSgsData" resultType="com.example.demo.entity.AcdChejunSgs">
+        select *, tjdate as maxTjTime
+        from acd_chejun_sgs
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comname_sgs
+    </select>
+    <select id="getChejunSgsDataPage" resultType="com.example.demo.entity.AcdChejunSgs">
+        select *, tjdate as maxTjTime
+        from acd_chejun_sgs
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+        order by comname_sgs
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countChejunSgs" resultType="java.lang.Long">
+        select count(*) from acd_chejun_sgs
+        where tjdate = #{tjDate}
+        <if test="comnameSgs != null and comnameSgs != ''">
+            and comname_sgs like concat('%', #{comnameSgs}, '%')
+        </if>
+    </select>
+
+    <!-- 未决存量-案件类型 -->
+    <select id="getWjxsData" resultType="com.example.demo.entity.AcdWjxs">
+        select
+            tjdate, comname, lflag, hj, bsrs, rs,
+            ztyj, bsrsyj, rsyj, ztwjxs, bsrswjxs, rswjxs,
+            tjdate as maxTjTime
+        from acd_wjxs
+        where 1 = 1
+            <if test="tjDate != null and tjDate != ''">
+                and tjdate = #{tjDate}
+            </if>
+            <if test="comnameSgs != null and comnameSgs != ''">
+                and comname like concat('%', #{comnameSgs}, '%')
+            </if>
+        order by hj desc
+    </select>
+    <select id="getWjxsDataPage" resultType="com.example.demo.entity.AcdWjxs">
+        select
+            tjdate, comname, lflag, hj, bsrs, rs,
+            ztyj, bsrsyj, rsyj, ztwjxs, bsrswjxs, rswjxs,
+            tjdate as maxTjTime
+        from acd_wjxs
+        where 1 = 1
+            <if test="tjDate != null and tjDate != ''">
+                and tjdate = #{tjDate}
+            </if>
+            <if test="comnameSgs != null and comnameSgs != ''">
+                and comname like concat('%', #{comnameSgs}, '%')
+            </if>
+        order by hj desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countWjxs" resultType="java.lang.Long">
+        select count(*) from acd_wjxs
+        where 1 = 1
+            <if test="tjDate != null and tjDate != ''">
+                and tjdate = #{tjDate}
+            </if>
+            <if test="comnameSgs != null and comnameSgs != ''">
+                and comname like concat('%', #{comnameSgs}, '%')
+            </if>
     </select>
 
 </mapper>

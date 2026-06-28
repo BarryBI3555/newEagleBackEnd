@@ -62,29 +62,35 @@ public final class TableNames {
             // 2026-06 新增（运营效率 7 张表）
             "acd_ba_la_ja_wj_pk",
             "acd_zhouqi_ry",
-            "acd_pacll_bm_shishi",
             "acd_jieanl_bm",
             "acd_jieanl_ry",
             "acd_pacll_cx_zgs",
             "acd_lingjie_ry",
+            "acd_wjxs",
             // 2026-06 新增（成本管控 14 张表）
             "acd_pflsgn_syxz",
             "acd_pflsgn_khq_zgs",
             "acd_pflsgn_syxz_zgs",
-            "acd_pflsgn_pp_zgs",
+            "acd_pflsgn_pinpai_zgs",
             "acd_pflbdn_zgs",
             "acd_pflbdn_khq",
             "acd_pflbdn_syxz",
-            "acd_pflbdn_pinpai",
             "acd_pflbdn_xny",
             "acd_pflbdn_syxz_zgs",
             "acd_pflbdn_khq_zgs",
             "acd_pflbdn_xny_zgs",
-            "acd_pflbdn_pp_zgs",
-            "acd_zhpfl_xz",
-
+            "acd_pflbdn_pinpai_zgs",
+            "acd_zhpfl_xl3",
+            
+            // 2026-06 新增（维修单位 2 张表）
             "acd_zgs_cbb",
-            "acd_wxdw_gjzb"
+            "acd_wxdw_gjzb",
+
+            // 2026-06 新增（车均定损 4 张表）
+            "acd_chejun_ry",
+            "acd_chejun_clbm",
+            "acd_chejun_bm",
+            "acd_chejun_sgs"
         ))
     );
 

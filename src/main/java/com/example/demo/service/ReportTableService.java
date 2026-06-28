@@ -32,7 +32,6 @@ import com.example.demo.entity.AcdRsGzlMonth;
 import com.example.demo.entity.AcdLisuanMonth;
 import com.example.demo.entity.AcdBaLaJaWjPk;
 import com.example.demo.entity.AcdZhouqiRy;
-import com.example.demo.entity.AcdPacllBmShishi;
 import com.example.demo.entity.AcdJieanlBm;
 import com.example.demo.entity.AcdJieanlRy;
 import com.example.demo.entity.AcdPacllCxZgs;
@@ -44,15 +43,19 @@ import com.example.demo.entity.AcdPflsgnPpZgs;
 import com.example.demo.entity.AcdPflbdnZgs;
 import com.example.demo.entity.AcdPflbdnKhq;
 import com.example.demo.entity.AcdPflbdnSyxz;
-import com.example.demo.entity.AcdPflbdnPinpai;
 import com.example.demo.entity.AcdPflbdnXny;
 import com.example.demo.entity.AcdPflbdnSyxzZgs;
 import com.example.demo.entity.AcdPflbdnKhqZgs;
 import com.example.demo.entity.AcdPflbdnXnyZgs;
 import com.example.demo.entity.AcdPflbdnPpZgs;
+import com.example.demo.entity.AcdWjxs;
 import com.example.demo.entity.AcdZhpflXz;
 import com.example.demo.entity.AcdZgsCbb;
 import com.example.demo.entity.AcdWxdwGjzb;
+import com.example.demo.entity.AcdChejunRy;
+import com.example.demo.entity.AcdChejunClbm;
+import com.example.demo.entity.AcdChejunBm;
+import com.example.demo.entity.AcdChejunSgs;
 import com.example.demo.entity.PageResult;
 
 import java.util.List;
@@ -289,10 +292,6 @@ public interface ReportTableService {
     List<AcdZhouqiRy> getZhouqiRyData(String tjDate, String comnameSgs);
     PageResult<AcdZhouqiRy> getZhouqiRyDataPage(String tjDate, String comnameSgs, int current, int size);
 
-    /** 赔案处理率-部门实时 */
-    List<AcdPacllBmShishi> getPacllBmShishiData(String comname);
-    PageResult<AcdPacllBmShishi> getPacllBmShishiDataPage(String comname, int current, int size);
-
     /** 每日结案量-部门实时 */
     List<AcdJieanlBm> getJieanlBmData(String tjDate);
     PageResult<AcdJieanlBm> getJieanlBmDataPage(String tjDate, int current, int size);
@@ -339,10 +338,6 @@ public interface ReportTableService {
     List<AcdPflbdnSyxz> getPflbdnSyxzData(String tjDate, String comnameSgs, String usenaturename);
     PageResult<AcdPflbdnSyxz> getPflbdnSyxzDataPage(String tjDate, String comnameSgs, String usenaturename, int current, int size);
 
-    /** 保单年赔付率-品牌 (无支公司) */
-    List<AcdPflbdnPinpai> getPflbdnPinpaiData(String tjDate, String comnameSgs, String brandname);
-    PageResult<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(String tjDate, String comnameSgs, String brandname, int current, int size);
-
     /** 保单年赔付率-新能源 */
     List<AcdPflbdnXny> getPflbdnXnyData(String tjDate, String xnyflag);
     PageResult<AcdPflbdnXny> getPflbdnXnyDataPage(String tjDate, String xnyflag, int current, int size);
@@ -375,4 +370,25 @@ public interface ReportTableService {
     /** 维修单位关键指标 */
     List<AcdWxdwGjzb> getWxdwGjzbData(String tjDate, String comnameSgs, String repairfactoryname);
     PageResult<AcdWxdwGjzb> getWxdwGjzbDataPage(String tjDate, String comnameSgs, String repairfactoryname, int current, int size);
+
+    // ==================== 车均定损 (2026-06) ====================
+    /** 车均定损-人员 */
+    List<AcdChejunRy> getChejunRyData(String tjDate, String comnameSgs);
+    PageResult<AcdChejunRy> getChejunRyDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 车均定损-处理部门 */
+    List<AcdChejunClbm> getChejunClbmData(String tjDate, String comnameSgs);
+    PageResult<AcdChejunClbm> getChejunClbmDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 车均定损-定损区域 */
+    List<AcdChejunBm> getChejunBmData(String tjDate, String dsqy);
+    PageResult<AcdChejunBm> getChejunBmDataPage(String tjDate, String dsqy, int current, int size);
+
+    /** 车均定损-市公司 */
+    List<AcdChejunSgs> getChejunSgsData(String tjDate, String comnameSgs);
+    PageResult<AcdChejunSgs> getChejunSgsDataPage(String tjDate, String comnameSgs, int current, int size);
+
+    /** 未决存量-案件类型 */
+    List<AcdWjxs> getWjxsData(String tjDate, String comnameSgs);
+    PageResult<AcdWjxs> getWjxsDataPage(String tjDate, String comnameSgs, int current, int size);
 }

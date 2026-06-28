@@ -32,7 +32,6 @@ import com.example.demo.entity.AcdRsGzlMonth;
 import com.example.demo.entity.AcdLisuanMonth;
 import com.example.demo.entity.AcdBaLaJaWjPk;
 import com.example.demo.entity.AcdZhouqiRy;
-import com.example.demo.entity.AcdPacllBmShishi;
 import com.example.demo.entity.AcdJieanlBm;
 import com.example.demo.entity.AcdJieanlRy;
 import com.example.demo.entity.AcdPacllCxZgs;
@@ -44,15 +43,19 @@ import com.example.demo.entity.AcdPflsgnPpZgs;
 import com.example.demo.entity.AcdPflbdnZgs;
 import com.example.demo.entity.AcdPflbdnKhq;
 import com.example.demo.entity.AcdPflbdnSyxz;
-import com.example.demo.entity.AcdPflbdnPinpai;
 import com.example.demo.entity.AcdPflbdnXny;
 import com.example.demo.entity.AcdPflbdnSyxzZgs;
 import com.example.demo.entity.AcdPflbdnKhqZgs;
 import com.example.demo.entity.AcdPflbdnXnyZgs;
 import com.example.demo.entity.AcdPflbdnPpZgs;
+import com.example.demo.entity.AcdWjxs;
 import com.example.demo.entity.AcdZhpflXz;
 import com.example.demo.entity.AcdZgsCbb;
 import com.example.demo.entity.AcdWxdwGjzb;
+import com.example.demo.entity.AcdChejunRy;
+import com.example.demo.entity.AcdChejunClbm;
+import com.example.demo.entity.AcdChejunBm;
+import com.example.demo.entity.AcdChejunSgs;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
@@ -627,16 +630,6 @@ public interface ReportTableMapper{
             @Param("tjDate") String tjDate,
             @Param("comnameSgs") String comnameSgs);
 
-    /** 赔案处理率-部门实时（无 comnameSgs，仅 comname 模糊过滤） */
-    List<AcdPacllBmShishi> getPacllBmShishiData(
-            @Param("comname") String comname);
-    List<AcdPacllBmShishi> getPacllBmShishiDataPage(
-            @Param("comname") String comname,
-            @Param("offset") int offset,
-            @Param("limit") int limit);
-    long countPacllBmShishi(
-            @Param("comname") String comname);
-
     /** 每日结案量-部门实时（无 comname 筛选） */
     List<AcdJieanlBm> getJieanlBmData(
             @Param("tjDate") String tjDate);
@@ -809,22 +802,6 @@ public interface ReportTableMapper{
             @Param("comnameSgs") String comnameSgs,
             @Param("usenaturename") String usenaturename);
 
-    /** 保单年赔付率-品牌 (无支公司) */
-    List<AcdPflbdnPinpai> getPflbdnPinpaiData(
-            @Param("tjDate") String tjDate,
-            @Param("comnameSgs") String comnameSgs,
-            @Param("brandname") String brandname);
-    List<AcdPflbdnPinpai> getPflbdnPinpaiDataPage(
-            @Param("tjDate") String tjDate,
-            @Param("comnameSgs") String comnameSgs,
-            @Param("brandname") String brandname,
-            @Param("offset") int offset,
-            @Param("limit") int limit);
-    long countPflbdnPinpai(
-            @Param("tjDate") String tjDate,
-            @Param("comnameSgs") String comnameSgs,
-            @Param("brandname") String brandname);
-
     /** 保单年赔付率-新能源 */
     List<AcdPflbdnXny> getPflbdnXnyData(
             @Param("tjDate") String tjDate,
@@ -956,5 +933,71 @@ public interface ReportTableMapper{
             @Param("tjDate") String tjDate,
             @Param("comnameSgs") String comnameSgs,
             @Param("repairfactoryname") String repairfactoryname);
+
+    // ==================== 车均定损 (2026-06) ====================
+    /** 车均定损-人员 */
+    List<AcdChejunRy> getChejunRyData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdChejunRy> getChejunRyDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countChejunRy(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 车均定损-处理部门 */
+    List<AcdChejunClbm> getChejunClbmData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdChejunClbm> getChejunClbmDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countChejunClbm(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 车均定损-定损区域 */
+    List<AcdChejunBm> getChejunBmData(
+            @Param("tjDate") String tjDate,
+            @Param("dsqy") String dsqy);
+    List<AcdChejunBm> getChejunBmDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("dsqy") String dsqy,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countChejunBm(
+            @Param("tjDate") String tjDate,
+            @Param("dsqy") String dsqy);
+
+    /** 车均定损-市公司 */
+    List<AcdChejunSgs> getChejunSgsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdChejunSgs> getChejunSgsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countChejunSgs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+
+    /** 未决存量-案件类型 */
+    List<AcdWjxs> getWjxsData(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
+    List<AcdWjxs> getWjxsDataPage(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+    long countWjxs(
+            @Param("tjDate") String tjDate,
+            @Param("comnameSgs") String comnameSgs);
 
 }
