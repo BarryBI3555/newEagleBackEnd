@@ -36,6 +36,10 @@ import com.example.demo.entity.AcdJieanlBm;
 import com.example.demo.entity.AcdJieanlRy;
 import com.example.demo.entity.AcdPacllCxZgs;
 import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdLingjieBm;
+import com.example.demo.entity.AcdLingjieGroups;
+import com.example.demo.entity.AcdLingjieZxzt;
+import com.example.demo.entity.AcdLingjieGroup;
 import com.example.demo.entity.AcdPflsgnSyxz;
 import com.example.demo.entity.AcdPflsgnKhqZgs;
 import com.example.demo.entity.AcdPflsgnSyxzZgs;
@@ -63,6 +67,7 @@ import com.example.demo.util.TableNames;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class ReportTableServiceImpl implements ReportTableService {
@@ -723,6 +728,56 @@ public class ReportTableServiceImpl implements ReportTableService {
     @Override
     public List<AcdLingjieRy> getLingjieRyData(String tjDate, String groups, String username) {
         return reportTableMapper.getLingjieRyData(tjDate, groups, username);
+    }
+
+    @Override
+    public List<AcdLingjieGroup> getLingjieGroupData(String tjDate, String comname, String groups) {
+        List<AcdLingjieBm> bmList = reportTableMapper.getLingjieBmData(tjDate);
+        List<AcdLingjieGroups> groupsList = reportTableMapper.getLingjieGroupsData(tjDate, comname, groups);
+        List<AcdLingjieZxzt> zxztList = reportTableMapper.getLingjieZxztData(tjDate);
+
+        List<AcdLingjieGroup> merged = new ArrayList<>();
+        for (AcdLingjieBm r : bmList) {
+            AcdLingjieGroup g = new AcdLingjieGroup();
+            g.setTjdate(r.getTjdate());
+            g.setComname(r.getComname());
+            g.setLjl1_3(r.getLjl1_3());
+            g.setLj1_3Pp(r.getLj1_3Pp());
+            g.setLjl4(r.getLjl4());
+            g.setLj4Pp(r.getLj4Pp());
+            g.setLjlWeek(r.getLjlWeek());
+            g.setLjWeekPp(r.getLjWeekPp());
+            g.setMaxTjTime(r.getMaxTjTime());
+            merged.add(g);
+        }
+        for (AcdLingjieGroups r : groupsList) {
+            AcdLingjieGroup g = new AcdLingjieGroup();
+            g.setTjdate(r.getTjdate());
+            g.setComname(r.getComname());
+            g.setGroups(r.getGroups());
+            g.setLjl1_3(r.getLjl1_3());
+            g.setLj1_3Pp(r.getLj1_3Pp());
+            g.setLjl4(r.getLjl4());
+            g.setLj4Pp(r.getLj4Pp());
+            g.setLjlWeek(r.getLjlWeek());
+            g.setLjWeekPp(r.getLjWeekPp());
+            g.setMaxTjTime(r.getMaxTjTime());
+            merged.add(g);
+        }
+        for (AcdLingjieZxzt r : zxztList) {
+            AcdLingjieGroup g = new AcdLingjieGroup();
+            g.setTjdate(r.getTjdate());
+            g.setComname(r.getComname());
+            g.setLjl1_3(r.getLingjieNum1_3());
+            g.setLj1_3Pp(r.getLingjie1_3Pp());
+            g.setLjl4(r.getLingjieNumMonth());
+            g.setLj4Pp(r.getLingjieMonthPp());
+            g.setLjlWeek(r.getLingjieNumWeek());
+            g.setLjWeekPp(r.getLingjieWeekPp());
+            g.setMaxTjTime(r.getMaxTjTime());
+            merged.add(g);
+        }
+        return merged;
     }
 
     @Override

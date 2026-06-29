@@ -90,7 +90,11 @@ public final class TableNames {
             "acd_chejun_ry",
             "acd_chejun_clbm",
             "acd_chejun_bm",
-            "acd_chejun_sgs"
+            "acd_chejun_sgs",
+            
+            "acd_lingjie_groups",
+            "acd_lingjie_bm",
+            "acd_lingjie_zxzt"
         ))
     );
 

@@ -1452,7 +1452,21 @@
     </select>
 
     <!-- 零结案-人员 -->
-    <select id="getLingjieRyData" resultType="com.example.demo.entity.AcdLingjieRy">
+    <resultMap id="LingjieRyMap" type="com.example.demo.entity.AcdLingjieRy">
+        <result column="tjdate"      property="tjdate"/>
+        <result column="comname"     property="comname"/>
+        <result column="groups"      property="groups"/>
+        <result column="usercode"    property="usercode"/>
+        <result column="username"    property="username"/>
+        <result column="ljl_1_3"     property="ljl1_3"/>
+        <result column="lj_1_3_pp"   property="lj1_3Pp"/>
+        <result column="ljl_4"       property="ljl4"/>
+        <result column="lj_4_pp"     property="lj4Pp"/>
+        <result column="ljl_week"    property="ljlWeek"/>
+        <result column="lj_week_pp"  property="ljWeekPp"/>
+        <result column="maxTjTime"   property="maxTjTime"/>
+    </resultMap>
+    <select id="getLingjieRyData" resultMap="LingjieRyMap">
         select *, tjdate as maxTjTime from acd_lingjie_ry
         where tjdate = #{tjDate}
         <if test="groups != null and groups != ''">
@@ -1463,7 +1477,7 @@
         </if>
         order by usercode
     </select>
-    <select id="getLingjieRyDataPage" resultType="com.example.demo.entity.AcdLingjieRy">
+    <select id="getLingjieRyDataPage" resultMap="LingjieRyMap">
         select *, tjdate as maxTjTime from acd_lingjie_ry
         where tjdate = #{tjDate}
         <if test="groups != null and groups != ''">
@@ -2225,6 +2239,82 @@
             <if test="comnameSgs != null and comnameSgs != ''">
                 and comname like concat('%', #{comnameSgs}, '%')
             </if>
+    </select>
+
+    <!-- ===================== 零结案-部门（合成表 bm 子源） ===================== -->
+    <!-- 用 resultMap 显式映射，绕过 MyBatis map-underscore-to-camel 的下划线处理 bug
+         （ljl_1_3 → ljl13 与 Java 字段 ljl1_3 不匹配） -->
+    <resultMap id="LingjieBmMap" type="com.example.demo.entity.AcdLingjieBm">
+        <result column="tjdate"      property="tjdate"/>
+        <result column="comcode"     property="comcode"/>
+        <result column="comname"     property="comname"/>
+        <result column="yjl_1_3"     property="yjl1_3"/>
+        <result column="yjl_4"       property="yjl4"/>
+        <result column="yjl_week"    property="yjlWeek"/>
+        <result column="ljl_1_3"     property="ljl1_3"/>
+        <result column="ljl_4"       property="ljl4"/>
+        <result column="ljl_week"    property="ljlWeek"/>
+        <result column="lj_1_3_pp"   property="lj1_3Pp"/>
+        <result column="lj_4_pp"     property="lj4Pp"/>
+        <result column="lj_week_pp"  property="ljWeekPp"/>
+        <result column="max_tj_time" property="maxTjTime"/>
+    </resultMap>
+    <select id="getLingjieBmData" resultMap="LingjieBmMap">
+        select *, tjdate as max_tj_time from acd_lingjie_bm
+        where tjdate = #{tjDate}
+        order by comcode
+    </select>
+
+    <!-- ===================== 零结案-小组（合成表 groups 子源） ===================== -->
+    <resultMap id="LingjieGroupsMap" type="com.example.demo.entity.AcdLingjieGroups">
+        <result column="tjdate"      property="tjdate"/>
+        <result column="comcode"     property="comcode"/>
+        <result column="comname"     property="comname"/>
+        <result column="groups"      property="groups"/>
+        <result column="groupscode"  property="groupscode"/>
+        <result column="yjl_1_3"     property="yjl1_3"/>
+        <result column="yjl_4"       property="yjl4"/>
+        <result column="yjl_week"    property="yjlWeek"/>
+        <result column="ljl_1_3"     property="ljl1_3"/>
+        <result column="ljl_4"       property="ljl4"/>
+        <result column="ljl_week"    property="ljlWeek"/>
+        <result column="lj_1_3_pp"   property="lj1_3Pp"/>
+        <result column="lj_4_pp"     property="lj4Pp"/>
+        <result column="lj_week_pp"  property="ljWeekPp"/>
+        <result column="max_tj_time" property="maxTjTime"/>
+    </resultMap>
+    <select id="getLingjieGroupsData" resultMap="LingjieGroupsMap">
+        select *, tjdate as max_tj_time from acd_lingjie_groups
+        where tjdate = #{tjDate}
+        <if test="comname != null and comname != ''">
+            and comname like concat('%', #{comname}, '%')
+        </if>
+        <if test="groups != null and groups != ''">
+            and groups like concat('%', #{groups}, '%')
+        </if>
+        order by comcode, groupscode
+    </select>
+
+    <!-- ===================== 零结案-中心整体（合成表 zxzt 子源） ===================== -->
+    <resultMap id="LingjieZxztMap" type="com.example.demo.entity.AcdLingjieZxzt">
+        <result column="tjdate"                property="tjdate"/>
+        <result column="comcode"               property="comcode"/>
+        <result column="comname"               property="comname"/>
+        <result column="lingjie_num_1_3"       property="lingjieNum1_3"/>
+        <result column="jiean_num_1_3"         property="jieanNum1_3"/>
+        <result column="lingjie_1_3_pp"        property="lingjie1_3Pp"/>
+        <result column="lingjie_num_month"     property="lingjieNumMonth"/>
+        <result column="jiean_num_month"       property="jieanNumMonth"/>
+        <result column="lingjie_month_pp"      property="lingjieMonthPp"/>
+        <result column="lingjie_num_week"      property="lingjieNumWeek"/>
+        <result column="jiean_num_week"        property="jieanNumWeek"/>
+        <result column="lingjie_week_pp"       property="lingjieWeekPp"/>
+        <result column="max_tj_time"           property="maxTjTime"/>
+    </resultMap>
+    <select id="getLingjieZxztData" resultMap="LingjieZxztMap">
+        select *, tjdate as max_tj_time from acd_lingjie_zxzt
+        where tjdate = #{tjDate}
+        order by comcode
     </select>
 
 </mapper>

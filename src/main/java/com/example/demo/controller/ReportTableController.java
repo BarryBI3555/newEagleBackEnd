@@ -36,6 +36,7 @@ import com.example.demo.entity.AcdJieanlBm;
 import com.example.demo.entity.AcdJieanlRy;
 import com.example.demo.entity.AcdPacllCxZgs;
 import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdLingjieGroup;
 import com.example.demo.entity.AcdPflsgnSyxz;
 import com.example.demo.entity.AcdPflsgnKhqZgs;
 import com.example.demo.entity.AcdPflsgnSyxzZgs;
@@ -1663,6 +1664,27 @@ public class ReportTableController {
         } catch (Exception e) {
             log.error("获取零结案-人员失败", e);
             return Result.error("获取零结案-人员失败", e);
+        }
+    }
+
+    /**
+     * 零结案-小组（合成：bm + groups + zxzt 三表内存合并）
+     * comname、groups 可选模糊过滤；tjDate 为空时回退到 groups 表的 max(tjdate)
+     */
+    @GetMapping("/lingjie_group/list")
+    public Result<List<AcdLingjieGroup>> getLingjieGroupList(
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String comname,
+            @RequestParam(required = false) String groups
+    ) {
+        try {
+            if (tjDate == null || tjDate.trim().isEmpty()) {
+                tjDate = reportTableService.getMaxTjDate("acd_lingjie_groups");
+            }
+            return Result.success(reportTableService.getLingjieGroupData(tjDate, comname, groups));
+        } catch (Exception e) {
+            log.error("获取零结案-小组失败", e);
+            return Result.error("获取零结案-小组失败", e);
         }
     }
 

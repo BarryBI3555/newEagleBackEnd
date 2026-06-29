@@ -4,6 +4,7 @@ import com.example.demo.entity.HeatData;
 import com.example.demo.service.HeatDataCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -39,6 +41,24 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
     /** 清理任务执行间隔：每 10 分钟跑一次 */
     private static final long CLEANUP_INTERVAL_MS = 10L * 60 * 1000;
 
+    /** 单区域占总案件 > 95% 强制标 stat */
+    private static final double DOMINANT_REGION_RATIO = 0.95;
+
+    @Value("${heatmap.region.step-deg:1.0}")
+    private double stepDeg;
+    @Value("${heatmap.region.sigma:1.3}")
+    private double sigma;
+    @Value("${heatmap.region.watch-sigma:1.0}")
+    private double watchSigma;
+    @Value("${heatmap.region.k-min:1}")
+    private int kMin;
+    @Value("${heatmap.region.k-max:2}")
+    private int kMax;
+    @Value("${heatmap.region.use-robust:true}")
+    private boolean useRobust;
+    @Value("${heatmap.region.dispersion-eps:1e-6}")
+    private double dispersionEps;
+
     /** 单 Map 替代原来 4 张 Map */
     private final Map<LocalDate, CacheEntry> cache = new ConcurrentHashMap<>();
 
@@ -52,24 +72,214 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
         // 防御性拷贝，避免外部修改内部状态
         List<HeatData> copy = new ArrayList<>(entry.data);
         // 对拷贝标记异常后返回（缓存本身保持原始数据不变）
-        markAbnormalOnList(copy);
+        markRegionAbnormal(copy);
         return copy;
     }
 
     /**
-     * 基于 Poisson / Negative Binomial Pearson 残差分析标记异常点
+     * 基于"区域聚合 + median+MAD 稳健基线"标记异常点
      *
-     * 模型：
-     *   - y_i ~ Poisson(λ_i)，无过离散时使用
-     *   - y_i ~ NB(μ, θ)，当 Var/Mean > 1（过离散）时升级使用
-     *
-     * Pearson 残差：
-     *   - Poisson:    r_i = (y_i - λ̂) / √λ̂
-     *   - NB:        r_i = (y_i - λ̂) / √(λ̂ + λ̂²/θ)
-     *
-     * 异常判定：|r_i| > 2 → 疑似异常，|r_i| > 3 → 强异常
-     * 残差为正表示高于期望（危险高发点），为负表示低于期望
+     * 流程（见 spec §4）：
+     *   Step 1: 按 (regionLng, regionLat) 聚合 → regionTotal
+     *   Step 2: 边界检查（非空区域 < 2 → 全 normal；MAD = 0 → 走 top-K 兜底）
+     *   Step 3: 计算 modified zscore = 0.6745 * (x - median) / MAD
+     *   Step 4: 初步判定 severity（stat / watch / normal）
+     *   Step 5: K_min 补足 / K_max 截断
+     *   Step 6: 点级传播 + 向后兼容 abnormal 字段
      */
+    void markRegionAbnormal(List<HeatData> dataList) {
+        if (dataList == null || dataList.isEmpty()) return;
+
+        // Step 1: 区域聚合
+        Map<RegionKey, int[]> regionStats = new HashMap<>();  // [total, pointCount]
+        for (HeatData p : dataList) {
+            if (p.getLng() == null || p.getLat() == null) continue;
+            RegionKey k = regionOf(p.getLng(), p.getLat());
+            int[] stat = regionStats.computeIfAbsent(k, x -> new int[2]);
+            stat[0] += (p.getCount() != null ? p.getCount() : 0);
+            stat[1] += 1;
+        }
+        if (regionStats.isEmpty()) {
+            markAllNormal(dataList);
+            return;
+        }
+
+        // Step 2a: 非空区域 < 2 → 全部 normal
+        List<Integer> nonEmptyTotals = new ArrayList<>();
+        for (int[] s : regionStats.values()) {
+            if (s[0] > 0) nonEmptyTotals.add(s[0]);
+        }
+        if (nonEmptyTotals.size() < 2) {
+            markAllNormal(dataList);
+            return;
+        }
+
+        // 全局总数 + 95% 主导检测
+        long globalTotal = 0;
+        for (int[] s : regionStats.values()) globalTotal += s[0];
+        RegionKey dominant = null;
+        for (Map.Entry<RegionKey, int[]> e : regionStats.entrySet()) {
+            if (e.getValue()[0] > 0
+                && (double) e.getValue()[0] / globalTotal > DOMINANT_REGION_RATIO) {
+                dominant = e.getKey();
+            }
+        }
+
+        // Step 2b: 计算 median + MAD（仅对非空区域）
+        nonEmptyTotals.sort(Integer::compareTo);
+        int median = nonEmptyTotals.get(nonEmptyTotals.size() / 2);
+        List<Integer> deviations = new ArrayList<>();
+        for (int t : nonEmptyTotals) deviations.add(Math.abs(t - median));
+        deviations.sort(Integer::compareTo);
+        double mad = deviations.get(deviations.size() / 2);
+
+        Map<RegionKey, String> severity = new HashMap<>();
+        Map<RegionKey, Double> zScore = new HashMap<>();
+
+        if (mad > 0) {
+            // Step 3+4: modified zscore + 初步判定
+            for (Map.Entry<RegionKey, int[]> e : regionStats.entrySet()) {
+                RegionKey k = e.getKey();
+                int total = e.getValue()[0];
+                if (total == 0) {
+                    severity.put(k, "normal");
+                    zScore.put(k, 0.0);
+                    continue;
+                }
+                double z = 0.6745 * (total - median) / mad;
+                zScore.put(k, z);
+                double absZ = Math.abs(z);
+                if (absZ > sigma) {
+                    severity.put(k, "stat");
+                } else if (absZ > watchSigma) {
+                    severity.put(k, "watch");
+                } else {
+                    severity.put(k, "normal");
+                }
+            }
+        } else {
+            // MAD = 0：所有 region_total 相等 → 全部 normal（后续走 K_min 兜底）
+            for (RegionKey k : regionStats.keySet()) {
+                severity.put(k, "normal");
+                zScore.put(k, 0.0);
+            }
+        }
+
+        // 95% 主导区域强制 stat
+        if (dominant != null) severity.put(dominant, "stat");
+
+        // Step 5a: K_min 补足
+        long statCount = severity.values().stream().filter("stat"::equals).count();
+        if (statCount < kMin) {
+            int needed = (int) (kMin - statCount);
+            // 候选：normal + watch 区域，按 regionTotal 降序
+            List<Map.Entry<RegionKey, int[]>> candidates = new ArrayList<>();
+            for (Map.Entry<RegionKey, int[]> e : regionStats.entrySet()) {
+                String sev = severity.get(e.getKey());
+                if ("stat".equals(sev)) continue;  // 已 stat 跳过
+                candidates.add(e);
+            }
+            candidates.sort((a, b) -> b.getValue()[0] - a.getValue()[0]);
+            for (int i = 0; i < Math.min(needed, candidates.size()); i++) {
+                // watch 区域保持 watch，不升级 topk（spec §4.5 设计）
+                RegionKey k = candidates.get(i).getKey();
+                if (!"watch".equals(severity.get(k))) {
+                    severity.put(k, "topk");
+                }
+            }
+        }
+
+        // Step 5b: K_max 截断（优先丢 topk，按 |z| 升序）
+        List<RegionKey> actionable = new ArrayList<>();
+        for (Map.Entry<RegionKey, String> e : severity.entrySet()) {
+            if ("stat".equals(e.getValue()) || "topk".equals(e.getValue())) {
+                actionable.add(e.getKey());
+            }
+        }
+        if (actionable.size() > kMax) {
+            int excess = actionable.size() - kMax;
+            List<RegionKey> topkList = new ArrayList<>();
+            for (RegionKey k : actionable) {
+                if ("topk".equals(severity.get(k))) topkList.add(k);
+            }
+            topkList.sort((a, b) -> Double.compare(
+                Math.abs(zScore.get(a)), Math.abs(zScore.get(b))));
+            for (int i = 0; i < Math.min(excess, topkList.size()); i++) {
+                severity.put(topkList.get(i), "normal");
+            }
+        }
+
+        // Step 6: 点级传播 + 向后兼容 abnormal
+        for (HeatData p : dataList) {
+            if (p.getLng() == null || p.getLat() == null) continue;
+            RegionKey k = regionOf(p.getLng(), p.getLat());
+            String sev = severity.getOrDefault(k, "normal");
+            p.setSeverity(sev);
+            p.setAbnormal(!"normal".equals(sev));
+        }
+
+        long statN = severity.values().stream().filter("stat"::equals).count();
+        long topkN = severity.values().stream().filter("topk"::equals).count();
+        long watchN = severity.values().stream().filter("watch"::equals).count();
+        long normalN = severity.values().stream().filter("normal"::equals).count();
+        logger.info("[markRegionAbnormal] 区域数={}, median={}, MAD={}, severity分布: stat={}, topk={}, watch={}, normal={}",
+            regionStats.size(), median, mad, statN, topkN, watchN, normalN);
+    }
+
+    /**
+     * 区域 key：(floor(lng/step)*step, floor(lat/step)*step)
+     * 用 static class + 手写 equals/hashCode（项目 Java 8，不支持 record）
+     */
+    private RegionKey regionOf(Double lng, Double lat) {
+        double rLng = Math.floor(lng / stepDeg) * stepDeg;
+        double rLat = Math.floor(lat / stepDeg) * stepDeg;
+        return new RegionKey(rLng, rLat);
+    }
+
+    private void markAllNormal(List<HeatData> dataList) {
+        for (HeatData p : dataList) {
+            p.setSeverity("normal");
+            p.setAbnormal(false);
+        }
+    }
+
+    /**
+     * 区域 key：半开区间 [a, a+step) 避免边界重复归类
+     */
+    private static class RegionKey {
+        final double lng;
+        final double lat;
+
+        RegionKey(double lng, double lat) {
+            this.lng = lng;
+            this.lat = lat;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof RegionKey)) return false;
+            RegionKey that = (RegionKey) o;
+            return Double.compare(that.lng, lng) == 0
+                && Double.compare(that.lat, lat) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(lng, lat);
+        }
+
+        @Override
+        public String toString() {
+            return "(" + lng + "," + lat + ")";
+        }
+    }
+
+    /**
+     * 旧实现：基于 Poisson / Negative Binomial Pearson 残差
+     * 已弃用（spec §十一回滚方案保留），保留以便回滚时切换
+     */
+    @Deprecated
     private void markAbnormalOnList(List<HeatData> dataList) {
         if (dataList == null || dataList.isEmpty()) return;
         int n = dataList.size();
