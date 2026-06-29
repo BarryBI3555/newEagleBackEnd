@@ -12,4 +12,5 @@ public class HeatData {
     private Double lat;
     private Integer count;
     private Boolean abnormal;
+    private String severity;
 }
