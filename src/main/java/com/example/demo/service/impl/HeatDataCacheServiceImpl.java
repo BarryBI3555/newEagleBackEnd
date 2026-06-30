@@ -412,6 +412,42 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
         return new RegionKey(rLng, rLat);
     }
 
+    /**
+     * Compute the dominant ratio for a candidate cluster against its 4-neighborhood grid blocks.
+     *
+     * <p>"Nearby" semantics (v3 spec): a region is "near" the cluster if its
+     * stepDeg-bucketed grid key lies in the cluster itself OR in one of the four
+     * cardinal grid neighbors of any cluster cell. All non-zero region totals in
+     * that footprint are summed into the denominator; the cluster's own total is
+     * included by construction.
+     *
+     * <p>Grid-boundary regions that don't exist (e.g. west neighbor missing at the
+     * data-domain edge) are simply omitted from the denominator.
+     *
+     * @return ratio in (0, 1]; returns 0.0 if the cluster is empty or the
+     *         neighborhood total is 0
+     */
+    double dominantRatio(Cluster cluster, Map<RegionKey, int[]> regionStats) {
+        if (cluster == null || cluster.cells.isEmpty()) return 0.0;
+
+        long neighborTotal = 0;
+        for (CellView cv : cluster.cells) {
+            neighborTotal += cv.count;
+            RegionKey[] neigh = new RegionKey[] {
+                new RegionKey(cv.key.lng + stepDeg, cv.key.lat),
+                new RegionKey(cv.key.lng - stepDeg, cv.key.lat),
+                new RegionKey(cv.key.lng,         cv.key.lat + stepDeg),
+                new RegionKey(cv.key.lng,         cv.key.lat - stepDeg)
+            };
+            for (RegionKey nk : neigh) {
+                int[] s = regionStats.get(nk);
+                if (s != null && s[0] > 0) neighborTotal += s[0];
+            }
+        }
+        if (neighborTotal <= 0) return 0.0;
+        return (double) cluster.totalCount / neighborTotal;
+    }
+
     private void markAllNormal(List<HeatData> dataList) {
         for (HeatData p : dataList) {
             p.setSeverity("normal");
