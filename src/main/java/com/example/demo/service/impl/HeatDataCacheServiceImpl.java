@@ -46,18 +46,33 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
 
     @Value("${heatmap.region.step-deg:1.0}")
     private double stepDeg;
+    @Value("${heatmap.region.merge-dist-deg:0.003}")
+    private double mergeDistDeg;
+    @Value("${heatmap.region.p95-min:5}")
+    private int p95Min;
+    @Value("${heatmap.region.dominant-ratio:0.20}")
+    private double dominantRatio;
+    @Value("${heatmap.region.k-max:8}")
+    private int kMax;
+
+    // @deprecated ignored by P95 algorithm, kept for property-binding backwards-compat
     @Value("${heatmap.region.sigma:1.3}")
     private double sigma;
+    // @deprecated ignored by P95 algorithm, kept for property-binding backwards-compat
     @Value("${heatmap.region.watch-sigma:1.0}")
     private double watchSigma;
+    // @deprecated ignored by P95 algorithm, kept for property-binding backwards-compat
     @Value("${heatmap.region.k-min:1}")
     private int kMin;
-    @Value("${heatmap.region.k-max:2}")
-    private int kMax;
+    // @deprecated ignored by P95 algorithm, kept for property-binding backwards-compat
     @Value("${heatmap.region.use-robust:true}")
     private boolean useRobust;
+    // @deprecated ignored by P95 algorithm, kept for property-binding backwards-compat
     @Value("${heatmap.region.dispersion-eps:1e-6}")
     private double dispersionEps;
+
+    /** 最小非空区域数，少于此值不进行异常判定（避免稀疏日输出假信号） */
+    private static final int MIN_NON_EMPTY_CELLS = 3;
 
     /** 单 Map 替代原来 4 张 Map */
     private final Map<LocalDate, CacheEntry> cache = new ConcurrentHashMap<>();
@@ -72,21 +87,165 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
         // 防御性拷贝，避免外部修改内部状态
         List<HeatData> copy = new ArrayList<>(entry.data);
         // 对拷贝标记异常后返回（缓存本身保持原始数据不变）
-        markRegionAbnormal(copy);
+        markRegionAbnormalP95(copy);
         return copy;
     }
 
     /**
-     * 基于"区域聚合 + median+MAD 稳健基线"标记异常点
+     * 基于"区域聚合 + P95 + 距离合并 + 主导比"标记异常点
      *
-     * 流程（见 spec §4）：
+     * 流程：
      *   Step 1: 按 (regionLng, regionLat) 聚合 → regionTotal
-     *   Step 2: 边界检查（非空区域 < 2 → 全 normal；MAD = 0 → 走 top-K 兜底）
-     *   Step 3: 计算 modified zscore = 0.6745 * (x - median) / MAD
-     *   Step 4: 初步判定 severity（stat / watch / normal）
-     *   Step 5: K_min 补足 / K_max 截断
-     *   Step 6: 点级传播 + 向后兼容 abnormal 字段
+     *   Step 2: 边界检查（非空区域 < 3 → 全 normal）
+     *   Step 3: 计算 P95（线性插值），threshold = max(p95-min, P95)
+     *   Step 4: 候选 = count >= threshold 的网格
+     *   Step 5: 候选按距离 < merge-dist-deg 合并为集群
+     *   Step 6: 主导比 → stat；其余按合并 count 降序排，前 k-max → topk，其余 watch
+     *   Step 7: 点级传播 + abnormal 字段
      */
+    void markRegionAbnormalP95(List<HeatData> dataList) {
+        if (dataList == null || dataList.isEmpty()) return;
+        if (dataList.size() < MIN_NON_EMPTY_CELLS) {
+            markAllNormal(dataList);
+            return;
+        }
+
+        // Step 1: 区域聚合
+        Map<RegionKey, int[]> regionStats = new HashMap<>();
+        for (HeatData p : dataList) {
+            if (p.getLng() == null || p.getLat() == null) continue;
+            RegionKey k = regionOf(p.getLng(), p.getLat());
+            int[] stat = regionStats.computeIfAbsent(k, x -> new int[2]);
+            stat[0] += (p.getCount() != null ? p.getCount() : 0);
+            stat[1] += 1;
+        }
+        if (regionStats.isEmpty()) {
+            markAllNormal(dataList);
+            return;
+        }
+
+        // 收集非空网格
+        List<CellView> nonEmpty = new ArrayList<>();
+        long globalTotal = 0;
+        for (Map.Entry<RegionKey, int[]> e : regionStats.entrySet()) {
+            if (e.getValue()[0] > 0) {
+                nonEmpty.add(new CellView(e.getKey(), e.getValue()[0]));
+                globalTotal += e.getValue()[0];
+            }
+        }
+        if (nonEmpty.size() < MIN_NON_EMPTY_CELLS) {
+            markAllNormal(dataList);
+            return;
+        }
+
+        // Step 2: 计算 P95（线性插值）
+        nonEmpty.sort(Comparator.comparingInt(c -> c.count));
+        int n = nonEmpty.size();
+        double rank = 0.95 * (n - 1);
+        int lo = (int) Math.floor(rank);
+        int hi = (int) Math.ceil(rank);
+        double frac = rank - lo;
+        double p95 = nonEmpty.get(lo).count * (1 - frac) + nonEmpty.get(hi).count * frac;
+        double threshold = Math.max(p95Min, p95);
+
+        // Step 3: 候选 = count >= threshold
+        List<CellView> candidates = new ArrayList<>();
+        for (CellView cv : nonEmpty) {
+            if (cv.count >= threshold) candidates.add(cv);
+        }
+
+        // Step 4: 按距离合并候选为集群
+        List<Cluster> clusters = new ArrayList<>();
+        for (CellView cv : candidates) {
+            Cluster target = null;
+            for (Cluster cl : clusters) {
+                if (cl.containsWithin(cv, mergeDistDeg)) {
+                    target = cl;
+                    break;
+                }
+            }
+            if (target == null) {
+                target = new Cluster();
+                clusters.add(target);
+            }
+            target.add(cv);
+        }
+
+        // Step 5: 主导比 → stat
+        Map<RegionKey, String> severity = new HashMap<>();
+        List<Cluster> remaining = new ArrayList<>();
+        for (Cluster cl : clusters) {
+            if (globalTotal > 0 && (double) cl.totalCount / globalTotal > dominantRatio) {
+                for (CellView cv : cl.cells) severity.put(cv.key, "stat");
+            } else {
+                remaining.add(cl);
+            }
+        }
+
+        // Step 6: 按合并 count 降序，前 k-max → topk，其余 watch
+        remaining.sort((a, b) -> Long.compare(b.totalCount, a.totalCount));
+        for (int i = 0; i < remaining.size(); i++) {
+            String sev = (i < kMax) ? "topk" : "watch";
+            for (CellView cv : remaining.get(i).cells) severity.put(cv.key, sev);
+        }
+
+        // Step 7: 点级传播 + abnormal
+        for (HeatData p : dataList) {
+            if (p.getLng() == null || p.getLat() == null) continue;
+            RegionKey k = regionOf(p.getLng(), p.getLat());
+            String sev = severity.getOrDefault(k, "normal");
+            p.setSeverity(sev);
+            p.setAbnormal(!"normal".equals(sev));
+        }
+
+        long statN = severity.values().stream().filter("stat"::equals).count();
+        long topkN = severity.values().stream().filter("topk"::equals).count();
+        long watchN = severity.values().stream().filter("watch"::equals).count();
+        long normalN = regionStats.size() - severity.size();
+        logger.info("[markRegionAbnormalP95] cells={}, p95={}, threshold={}, clusters={}, severity分布: stat={}, topk={}, watch={}, normal={}",
+            regionStats.size(), String.format("%.2f", p95), String.format("%.2f", threshold),
+            clusters.size(), statN, topkN, watchN, normalN);
+    }
+
+    /**
+     * 网格视图：用于 P95 计算和距离合并
+     */
+    private static class CellView {
+        final RegionKey key;
+        final int count;
+        CellView(RegionKey k, int c) {
+            this.key = k;
+            this.count = c;
+        }
+    }
+
+    /**
+     * 集群：候选网格按距离合并的容器
+     */
+    private static class Cluster {
+        final List<CellView> cells = new ArrayList<>();
+        long totalCount = 0;
+
+        void add(CellView c) {
+            cells.add(c);
+            totalCount += c.count;
+        }
+
+        boolean containsWithin(CellView c, double distDeg) {
+            for (CellView m : cells) {
+                double dLng = m.key.lng - c.key.lng;
+                double dLat = m.key.lat - c.key.lat;
+                if (Math.sqrt(dLng * dLng + dLat * dLat) < distDeg) return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * @deprecated 已替换为 markRegionAbnormalP95；保留以备回滚，不应在生产路径调用。
+     * 旧实现：基于 median + MAD modified z-score
+     */
+    @Deprecated
     void markRegionAbnormal(List<HeatData> dataList) {
         if (dataList == null || dataList.isEmpty()) return;
 
