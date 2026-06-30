@@ -106,8 +106,20 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
         entry.touch();
         // 防御性拷贝，避免外部修改内部状态
         List<HeatData> copy = new ArrayList<>(entry.data);
-        // 对拷贝标记异常后返回（缓存本身保持原始数据不变）
-        markRegionAbnormalP95(copy);
+        // 算法分派：3-way switch on heatmap.algorithm.mode.
+        // Default 'p95' preserves the original production behavior.
+        switch (algorithmMode) {
+            case "cascade":
+                markRegionAbnormalCascade(copy);
+                break;
+            case "legacy":
+                markRegionAbnormal(copy);
+                break;
+            case "p95":
+            default:
+                markRegionAbnormalP95(copy);
+                break;
+        }
         return copy;
     }
 
