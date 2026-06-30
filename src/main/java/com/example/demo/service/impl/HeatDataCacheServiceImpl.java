@@ -55,6 +55,23 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
     @Value("${heatmap.region.k-max:8}")
     private int kMax;
 
+    // ============= Algorithm mode switch =============
+    @Value("${heatmap.algorithm.mode:p95}")
+    private String algorithmMode;
+
+    // ============= Cascade (v3) parameters =============
+    @Value("${heatmap.cascade.p95-min:5}")
+    private int cascadeP95Min;
+
+    @Value("${heatmap.cascade.dominant-ratio:0.4}")
+    private double cascadeDominantRatio;
+
+    @Value("${heatmap.cascade.merge-dist-deg:0.003}")
+    private double cascadeMergeDistDeg;
+
+    @Value("${heatmap.cascade.k-max:8}")
+    private int cascadeKMax;
+
     // @deprecated ignored by P95 algorithm, kept for property-binding backwards-compat
     @Value("${heatmap.region.sigma:1.3}")
     private double sigma;
