@@ -12,9 +12,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -406,6 +409,164 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
      * 区域 key：(floor(lng/step)*step, floor(lat/step)*step)
      * 用 static class + 手写 equals/hashCode（项目 Java 8，不支持 record）
      */
+    /**
+     * 级联方案 (cascade / v3) — three-step gating anomaly detector.
+     *
+     * <p>Step 1 (RED): per-region aggregation → P95 (linear interpolation) →
+     *   candidates = regions with count >= max(p95Min, P95) → cluster candidates by
+     *   Euclidean distance within cascadeMergeDistDeg → for each cluster, compute
+     *   dominantRatio against the cluster's own count plus its 4 cardinal grid
+     *   neighbors. Clusters with dominantRatio > cascadeDominantRatio are marked
+     *   "stat" (red).
+     *
+     * <p>Step 2 (BLUE): only runs if Step 1 produced zero "stat". For each region,
+     *   pick the highest-count point. Cluster those max-points by the same distance
+     *   rule, compute dominantRatio the same way. Dominated maxima are marked
+     *   "regionMax" (blue).
+     *
+     * <p>Step 3 (YELLOW): only runs if Step 1 AND Step 2 produced zero "stat".
+     *   Sort all HeatData points by count descending, take top cascadeKMax, mark
+     *   "topk" (yellow).
+     *
+     * <p>All other points → "normal".
+     */
+    void markRegionAbnormalCascade(List<HeatData> points) {
+        if (points == null || points.isEmpty()) return;
+        if (points.size() < MIN_NON_EMPTY_CELLS) {
+            markAllNormal(points);
+            return;
+        }
+
+        Map<RegionKey, int[]> regionStats = new HashMap<>();
+        for (HeatData p : points) {
+            if (p.getLng() == null || p.getLat() == null) continue;
+            RegionKey k = regionOf(p.getLng(), p.getLat());
+            int[] stat = regionStats.computeIfAbsent(k, x -> new int[2]);
+            stat[0] += (p.getCount() != null ? p.getCount() : 0);
+            stat[1] += 1;
+        }
+        if (regionStats.size() < MIN_NON_EMPTY_CELLS) { markAllNormal(points); return; }
+
+        List<Integer> nonEmptyTotals = new ArrayList<>();
+        for (int[] s : regionStats.values()) if (s[0] > 0) nonEmptyTotals.add(s[0]);
+        if (nonEmptyTotals.size() < MIN_NON_EMPTY_CELLS) { markAllNormal(points); return; }
+        nonEmptyTotals.sort(Integer::compareTo);
+
+        double rank = 0.95 * (nonEmptyTotals.size() - 1);
+        int lo = (int) Math.floor(rank);
+        int hi = (int) Math.ceil(rank);
+        double frac = rank - lo;
+        double p95 = nonEmptyTotals.get(lo) * (1 - frac) + nonEmptyTotals.get(hi) * frac;
+        double step1Threshold = Math.max(cascadeP95Min, p95);
+
+        List<CellView> step1Candidates = new ArrayList<>();
+        for (Map.Entry<RegionKey, int[]> e : regionStats.entrySet()) {
+            if (e.getValue()[0] >= step1Threshold) {
+                step1Candidates.add(new CellView(e.getKey(), e.getValue()[0]));
+            }
+        }
+
+        List<Cluster> clusters = new ArrayList<>();
+        for (CellView cv : step1Candidates) {
+            Cluster target = null;
+            for (Cluster cl : clusters) {
+                if (cl.containsWithin(cv, cascadeMergeDistDeg)) { target = cl; break; }
+            }
+            if (target == null) { target = new Cluster(); clusters.add(target); }
+            target.add(cv);
+        }
+
+        Set<RegionKey> step1Red = new HashSet<>();
+        for (Cluster cl : clusters) {
+            if (dominantRatio(cl, regionStats) > cascadeDominantRatio) {
+                for (CellView cv : cl.cells) step1Red.add(cv.key);
+            }
+        }
+
+        if (!step1Red.isEmpty()) {
+            applySeveritiesByRegion(points, step1Red, "stat");
+            logCascadeStep(1, regionStats.size(), step1Red.size());
+            return;
+        }
+
+        Map<RegionKey, HeatData> regionMaxPoint = new HashMap<>();
+        for (HeatData p : points) {
+            if (p.getLng() == null || p.getLat() == null) continue;
+            int c = p.getCount() != null ? p.getCount() : 0;
+            if (c <= 0) continue;
+            RegionKey k = regionOf(p.getLng(), p.getLat());
+            HeatData cur = regionMaxPoint.get(k);
+            if (cur == null || c > cur.getCount()) regionMaxPoint.put(k, p);
+        }
+
+        List<CellView> maxCells = new ArrayList<>();
+        for (Map.Entry<RegionKey, HeatData> e : regionMaxPoint.entrySet()) {
+            maxCells.add(new CellView(e.getKey(),
+                e.getValue().getCount() != null ? e.getValue().getCount() : 0));
+        }
+
+        List<Cluster> maxClusters = new ArrayList<>();
+        for (CellView cv : maxCells) {
+            Cluster target = null;
+            for (Cluster cl : maxClusters) {
+                if (cl.containsWithin(cv, cascadeMergeDistDeg)) { target = cl; break; }
+            }
+            if (target == null) { target = new Cluster(); maxClusters.add(target); }
+            target.add(cv);
+        }
+
+        Set<RegionKey> step2Blue = new HashSet<>();
+        for (Cluster cl : maxClusters) {
+            if (dominantRatio(cl, regionStats) > cascadeDominantRatio) {
+                for (CellView cv : cl.cells) step2Blue.add(cv.key);
+            }
+        }
+
+        if (!step2Blue.isEmpty()) {
+            applySeveritiesByRegion(points, step2Blue, "regionMax");
+            logCascadeStep(2, regionStats.size(), step2Blue.size());
+            return;
+        }
+
+        List<HeatData> sorted = new ArrayList<>(points);
+        sorted.sort((a, b) -> {
+            int ca = a.getCount() != null ? a.getCount() : 0;
+            int cb = b.getCount() != null ? b.getCount() : 0;
+            if (cb != ca) return Integer.compare(cb, ca);
+            return Integer.compare(System.identityHashCode(a), System.identityHashCode(b));
+        });
+        Set<HeatData> topK = new LinkedHashSet<>();
+        for (int i = 0; i < Math.min(cascadeKMax, sorted.size()); i++) topK.add(sorted.get(i));
+
+        for (HeatData p : points) {
+            if (topK.contains(p)) { p.setSeverity("topk"); p.setAbnormal(true); }
+            else                  { p.setSeverity("normal"); p.setAbnormal(false); }
+        }
+        logCascadeStep(3, regionStats.size(), topK.size());
+    }
+
+    /**
+     * Apply {@code severity} to all points whose grid region is in {@code markedRegions}.
+     * All other points become "normal".
+     */
+    private void applySeveritiesByRegion(List<HeatData> points,
+                                         Set<RegionKey> markedRegions,
+                                         String severity) {
+        for (HeatData p : points) {
+            if (p.getLng() == null || p.getLat() == null) {
+                p.setSeverity("normal"); p.setAbnormal(false); continue;
+            }
+            RegionKey k = regionOf(p.getLng(), p.getLat());
+            if (markedRegions.contains(k)) { p.setSeverity(severity); p.setAbnormal(true); }
+            else                           { p.setSeverity("normal"); p.setAbnormal(false); }
+        }
+    }
+
+    private void logCascadeStep(int step, int regionCount, int markedCount) {
+        logger.info("[markRegionAbnormalCascade] step={} fired, regions={}, marked={}",
+            step, regionCount, markedCount);
+    }
+
     private RegionKey regionOf(Double lng, Double lat) {
         double rLng = Math.floor(lng / stepDeg) * stepDeg;
         double rLat = Math.floor(lat / stepDeg) * stepDeg;
