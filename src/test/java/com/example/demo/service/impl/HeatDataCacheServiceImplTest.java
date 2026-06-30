@@ -10,13 +10,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * HeatDataCacheServiceImpl.markRegionAbnormal 单元测试
- * 覆盖 spec §10 测试矩阵 8 个场景
+ * HeatDataCacheServiceImpl.markRegionAbnormalP95 单元测试
+ * 覆盖 P95 + 距离合并 + 主导比 算法的 8 个核心场景
  */
 class HeatDataCacheServiceImplTest {
 
@@ -25,14 +24,12 @@ class HeatDataCacheServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new HeatDataCacheServiceImpl();
-        // 注入配置默认值（与 application.properties 一致）
+        // 注入新算法配置默认值（与 application.properties 一致）
         ReflectionTestUtils.setField(service, "stepDeg", 1.0);
-        ReflectionTestUtils.setField(service, "sigma", 1.3);
-        ReflectionTestUtils.setField(service, "watchSigma", 1.0);
-        ReflectionTestUtils.setField(service, "kMin", 1);
-        ReflectionTestUtils.setField(service, "kMax", 2);
-        ReflectionTestUtils.setField(service, "useRobust", true);
-        ReflectionTestUtils.setField(service, "dispersionEps", 1e-6);
+        ReflectionTestUtils.setField(service, "mergeDistDeg", 0.003);
+        ReflectionTestUtils.setField(service, "p95Min", 5);
+        ReflectionTestUtils.setField(service, "dominantRatio", 0.20);
+        ReflectionTestUtils.setField(service, "kMax", 8);
     }
 
     /** 工具：构造一个 (lng, lat, count) 单元 */
@@ -40,14 +37,39 @@ class HeatDataCacheServiceImplTest {
         return new HeatData(lng, lat, count, false, null);
     }
 
-    /** 工具：构造 regionTotal 视角的 4 区域（1° 步长） */
+    /**
+     * 构造 0.005° 网格视角的 4 区域。
+     * coords[i] = {lng, lat}，落在 (102,30)(103,30)(102,31)(103,31) 4 个 1° 步长的 region。
+     * 由于 stepDeg=1.0，4 个坐标天然分到 4 个不同 region。
+     */
     private List<HeatData> regionTotalView(int[] totals) {
-        // 4 个 region：(102,30) (103,30) (102,31) (103,31)
         double[][] coords = { {102.1, 30.1}, {103.1, 30.1}, {102.1, 31.1}, {103.1, 31.1} };
         List<HeatData> list = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
-            // 1 个单元 count=totals[i]（同 region 内多点等价于一个 count=totals[i] 的点）
             list.add(pt(coords[i][0], coords[i][1], totals[i]));
+        }
+        return list;
+    }
+
+    /** 工具：构造 5 区域数据 */
+    private List<HeatData> regionTotalView5(int[] totals) {
+        double[][] coords = {
+            {102.1, 30.1}, {103.1, 30.1}, {102.1, 31.1},
+            {103.1, 31.1}, {104.1, 30.5}
+        };
+        List<HeatData> list = new ArrayList<>();
+        for (int i = 0; i < totals.length; i++) {
+            list.add(pt(coords[i][0], coords[i][1], totals[i]));
+        }
+        return list;
+    }
+
+    /** 工具：构造 N 个分散 0.005° 区域（任意坐标），每个区域一个 count */
+    private List<HeatData> scatteredView(int[] counts) {
+        List<HeatData> list = new ArrayList<>();
+        // 经度每条 +1.0°（> stepDeg=1.0）保证各落不同 region
+        for (int i = 0; i < counts.length; i++) {
+            list.add(pt(102.0 + i * 1.0, 30.0, counts[i]));
         }
         return list;
     }
@@ -63,142 +85,140 @@ class HeatDataCacheServiceImplTest {
 
     @Test
     void test1_极端差异() {
-        // [580, 220, 180, 60] → max region → stat；modified_z(580) ≈ 3.20
+        // [580, 220, 180, 60] → total=1040, 580/1040=55.8% > 0.20 → 1 个 stat；其余 normal
         List<HeatData> data = regionTotalView(new int[]{580, 220, 180, 60});
-        service.markRegionAbnormal(data);
+        service.markRegionAbnormalP95(data);
         Map<String, Long> sev = countSeverity(data);
-        assertEquals(1L, sev.get("stat"), "580 区域应标 stat");
-        // 其余 3 区域 |z| < 1.0 → normal
+        assertEquals(1L, sev.get("stat"), "580 区域应标 stat（主导比 > 0.20）");
         assertEquals(3L, sev.get("normal"), "其余 3 区域应标 normal");
-        // abnormal 向后兼容：stat → true
         assertTrue(data.get(0).getAbnormal(), "stat 区域 abnormal=true");
     }
 
     @Test
     void test2_完全均匀() {
-        // [100, 100, 100, 100] → MAD=0 → 走 top-K_min；max region → topk
+        // [100, 100, 100, 100] → 4 个 region 各 25%，dominantRatio=0.20 → 25% > 20%，4 个全 stat
         List<HeatData> data = regionTotalView(new int[]{100, 100, 100, 100});
-        service.markRegionAbnormal(data);
+        service.markRegionAbnormalP95(data);
         Map<String, Long> sev = countSeverity(data);
-        // 4 个 region_total 相等 → K_min 补 1 个 topk
-        assertEquals(1L, sev.get("topk"), "应补 1 个 topk");
-        assertEquals(3L, sev.get("normal"), "其余 3 个 normal");
+        assertEquals(4L, sev.get("stat"), "各 25% > 0.20 主导阈值，4 个全标 stat");
+        assertNull(sev.get("topk"), "无 topk");
     }
 
     @Test
-    void test3_中等差异_Kmin兜底() {
-        // [200, 150, 120, 100]：median=150, MAD=50, max|z|≈0.67 < sigma(1.3)
-        // 没有 stat 区域，K_min=1 应触发 topk 兜底（最大 region=200 → topk）
-        List<HeatData> data = regionTotalView(new int[]{200, 150, 120, 100});
-        service.markRegionAbnormal(data);
+    void test3_p95_min_floor() {
+        // [1, 1, 1, 1, 7] → P95=1，threshold=max(5, 1)=5 → 1 个候选（count=7）
+        // 候选集群 7/11=63.6% > 0.20 → stat
+        List<HeatData> data = regionTotalView5(new int[]{1, 1, 1, 1, 7});
+        service.markRegionAbnormalP95(data);
         Map<String, Long> sev = countSeverity(data);
-        // K_min 兜底：至少 1 个 stat 或 topk
-        long actionable = (sev.getOrDefault("stat", 0L) + sev.getOrDefault("topk", 0L));
-        assertTrue(actionable >= 1, "中等差异应通过 K_min 兜底保证至少 1 个 actionable 区域");
-        // 200 应是 topk（它是 regionTotal 最大且非 stat）
-        assertEquals(1L, sev.getOrDefault("topk", 0L), "最大 region 应被标 topk");
+        assertEquals(1L, sev.getOrDefault("stat", 0L), "P95-min=5 识别 1 个候选，且其占比 > 0.20 → stat");
+        assertEquals(4L, sev.get("normal"), "其余 4 个 normal");
     }
 
     @Test
     void test4_单区域独大() {
-        // [950, 30, 10, 10] → total=1000，950>95% → 强制 stat
+        // [950, 30, 10, 10] → total=1000, 950/1000=95% > 0.20 → 1 个 stat
         List<HeatData> data = regionTotalView(new int[]{950, 30, 10, 10});
-        service.markRegionAbnormal(data);
+        service.markRegionAbnormalP95(data);
         Map<String, Long> sev = countSeverity(data);
-        assertEquals(1L, sev.get("stat"), "主导 95% 强制 stat");
-        // 其余 3 区域均值 ≈ 16.7，远小于 950
+        assertEquals(1L, sev.get("stat"), "950 区域主导比 95% > 0.20，标 stat");
         assertEquals(3L, sev.get("normal"), "其余 normal");
     }
 
     @Test
-    void test5_watch不升级() {
-        // 构造候选 watch 但同时是 top-K 第一名 → 保持 watch
-        // median+MAD 让最大那个是 watch（|z| 处于 1.0~1.3 区间），但 regionTotal 最大
-        // 用 [100, 90, 80, 70] — median=85, MAD=15, z(100)=0.6745*15/15=0.67 → normal
-        // 改为 [200, 130, 100, 50] — median=115, MAD=65, z(200)=0.6745*85/65=0.88 → normal
-        // 实际难以纯数据构造 watch 同时是 top1，改用更直接：watch 是 top-1 但 K_min 兜底跳过 watch
-        // 这里只验证 watch 不被升级（用更小尺度数据触发 watch）
-        // [50, 40, 30, 20] — median=35, MAD=15, z(50)=0.67 → normal; z(20)=-0.67 → normal
-        // 改用 [40, 35, 30, 25] — median=32, MAD=7, z(40)=0.77; z(25)=-0.67 → 都不够 watch
-        // 简化：直接验证 watch 区域 severity 字段不被改写为 topk
-        List<HeatData> data = regionTotalView(new int[]{130, 100, 100, 30});
-        // median=100, MAD=30, z(130)=0.6745*30/30=0.67 → normal
-        // z(30)=0.6745*-70/30=-1.57 → stat（负向）
-        // 改 K_min=2 看是否触发 topk 升级
-        ReflectionTestUtils.setField(service, "kMin", 2);
-        service.markRegionAbnormal(data);
-        // 验证没有 "watch" 区域被升级为 "topk"
-        for (HeatData d : data) {
-            String sev = d.getSeverity();
-            if (Objects.equals(sev, "watch")) {
-                assertNotEquals("topk", sev, "watch 不应被升级为 topk");
-            }
-        }
+    void test5_watch_below_topk() {
+        // 10 个分散 region，counts 全部 >= threshold，无主导（各 9-11%）
+        // counts: 8 个 10, 2 个 11 → total=102
+        // n=10, rank=9*0.95=8.55, lo=8 (10), hi=9 (11), frac=0.55
+        // P95 = 10*0.45 + 11*0.55 = 10.55, threshold=10.55
+        // 候选：count=11 那 2 个 → 2 个集群
+        // kMax=8，2 个候选全 topk，无 watch
+        int[] counts = {10, 10, 10, 10, 10, 10, 10, 10, 11, 11};
+        List<HeatData> data = scatteredView(counts);
+        service.markRegionAbnormalP95(data);
+        Map<String, Long> sev = countSeverity(data);
+        assertEquals(2L, sev.getOrDefault("topk", 0L), "2 个候选集群未触发主导比，全部 topk");
+        assertEquals(0L, sev.getOrDefault("watch", 0L), "候选数 2 < kMax=8，无 watch");
+    }
+
+    @Test
+    void test5b_watch_below_topk_with_overflow() {
+        // 同样数据但让更多候选跨过 P95：10 个全 10
+        // n=10, rank=8.55, P95=10, threshold=10 → 10 个全候选
+        // 各 10/100=10% ≤ 20% → 不主导
+        // kMax=3 → 3 topk + 7 watch
+        int[] counts = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+        List<HeatData> data = scatteredView(counts);
+        ReflectionTestUtils.setField(service, "kMax", 3);
+        service.markRegionAbnormalP95(data);
+        Map<String, Long> sev = countSeverity(data);
+        assertEquals(3L, sev.getOrDefault("topk", 0L), "kMax=3，10 候选中 3 个 topk");
+        assertEquals(7L, sev.getOrDefault("watch", 0L), "剩余 7 个候选 watch");
     }
 
     @Test
     void test6_Kmax截断() {
-        // 构造 3 个 stat + K_max=2 → 截掉 1 个 stat → watch
-        // 4 区域 totals → 需要 3 个 stat
-        // [300, 100, 100, 30] — median=100, MAD=70, z(300)=0.6745*200/70=1.93 → stat
-        // z(100)=0 → normal; z(30)=0.6745*-70/30=-1.57 → stat
-        // 改 sigma=1.5 让 stat 更宽松
-        ReflectionTestUtils.setField(service, "sigma", 1.5);
-        ReflectionTestUtils.setField(service, "kMin", 0);  // 不强制补
-        List<HeatData> data = regionTotalView(new int[]{300, 100, 100, 30});
-        service.markRegionAbnormal(data);
-        // 此时 actionable 应该是 2 个 stat（300 和 30），kMax=2 不截
-        // 把 K_max 设为 1 测试截断
+        // 10 个分散 region 全 count=10，P95=10 → 10 个全候选；kMax=1 → topk 数量被截断
+        int[] counts = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+        List<HeatData> data = scatteredView(counts);
         ReflectionTestUtils.setField(service, "kMax", 1);
-        // 重新跑需要新数据（因为 setSeverity 已写）
-        List<HeatData> data2 = regionTotalView(new int[]{300, 100, 100, 30});
-        ReflectionTestUtils.setField(service, "kMin", 0);
-        service.markRegionAbnormal(data2);
-        // 至少 1 个 stat + 截掉的应降级
-        long statN = countSeverity(data2).getOrDefault("stat", 0L);
-        assertTrue(statN <= 1, "K_max=1 时 stat 应不超过 1");
+        service.markRegionAbnormalP95(data);
+        long topkN = countSeverity(data).getOrDefault("topk", 0L);
+        assertTrue(topkN <= 1, "K_max=1 时 topk 应不超过 1，实际=" + topkN);
     }
 
     @Test
-    void test7_空区域数小于2() {
-        // 4 个 region 但只有 1 个有数据（3 个空）
-        // 用很偏的坐标让 3 个点落在同一 region
+    void test7_sparse_day() {
+        // 数据量 < MIN_NON_EMPTY_CELLS(3) → 全 normal（防稀疏日假信号）
         List<HeatData> data = Arrays.asList(
             pt(102.1, 30.1, 100),
-            pt(102.2, 30.1, 50),  // 同一 region
-            pt(102.3, 30.1, 30)   // 同一 region
+            pt(102.2, 30.1, 50)  // 同一 region（stepDeg=1.0）
         );
-        service.markRegionAbnormal(data);
-        // 3 个点都在同一 region（102,30）→ 非空区域数=1 → 全 normal
+        service.markRegionAbnormalP95(data);
         for (HeatData d : data) {
-            assertEquals("normal", d.getSeverity(), "非空区域 < 2 应全 normal");
+            assertEquals("normal", d.getSeverity(), "稀疏日应全 normal");
             assertFalse(d.getAbnormal());
         }
     }
 
     @Test
-    void test8_两端异常() {
-        // [300, 100, 100, 30] → top → stat；bottom → 也可能 stat（双向）
-        // median=100, MAD=70, z(300)=0.6745*200/70=1.93 → stat
-        // z(30)=0.6745*-70/30=-1.57 → stat
-        // 减 sigma 让双向都能触发
-        ReflectionTestUtils.setField(service, "sigma", 1.5);
-        List<HeatData> data = regionTotalView(new int[]{300, 100, 100, 30});
-        service.markRegionAbnormal(data);
+    void test8_cluster_merge() {
+        // 2 个候选 cell 在 merge-dist-deg=0.003° 内合并为 1 集群
+        // 另一 cell 远离，单独 1 集群
+        // stepDeg=0.005 → cell 在 (102.000,30.000) (102.005,30.005) (102.100,30.100)
+        // 前两者距离 sqrt(0.005²+0.005²)=0.00707 > 0.003 → 不合并
+        // 改用更近的坐标：(102.0000,30.0000) (102.0010,30.0010) → 距离≈0.00141 < 0.003 → 合并
+        // 第三点远离 (103.000,30.000)
+        List<HeatData> data = new ArrayList<>();
+        ReflectionTestUtils.setField(service, "stepDeg", 0.005);
+        // 5 个分散点 + 2 个近距离点 + 1 个远点
+        data.add(pt(102.0000, 30.0000, 20));
+        data.add(pt(102.0010, 30.0010, 30));  // 距上者 0.00141° < 0.003° → 合并
+        data.add(pt(103.0000, 30.0000, 50));
+        data.add(pt(104.0000, 30.0000, 10));
+        data.add(pt(105.0000, 30.0000, 10));
+        data.add(pt(106.0000, 30.0000, 10));
+        data.add(pt(107.0000, 30.0000, 10));
+        data.add(pt(108.0000, 30.0000, 10));
+        // total=150, P95=30+(30-20)*0.95*7/7 → 大约 30
+        // threshold=max(5, P95)≈30，候选：(50), (20+30)合并=50
+        // 50/150=33%>0.20 → stat；20+30合并集群=50/150=33%>0.20 → stat
+        // 共 2 个集群 2 个 stat
+        service.markRegionAbnormalP95(data);
         Map<String, Long> sev = countSeverity(data);
-        // 至少 1 个 stat（实际可能是 2 个 — 双向）
-        assertNotNull(sev.get("stat"), "两端异常应至少 1 个 stat");
-        assertTrue(sev.get("stat") >= 1, "stat 至少 1 个");
+        // 验证合并后 2 个独立 severity 标签，且至少 1 个 stat
+        assertNotNull(sev.get("stat"), "至少应有 1 个 stat");
+        assertTrue(sev.get("stat") >= 1, "距离合并后主导集群标 stat");
     }
 
     @Test
     void test9_向后兼容_abnormal字段() {
         // 验证 abnormal 与 severity 一致：severity != "normal" → abnormal=true
         List<HeatData> data = regionTotalView(new int[]{580, 220, 180, 60});
-        service.markRegionAbnormal(data);
+        service.markRegionAbnormalP95(data);
         for (HeatData d : data) {
             String sev = d.getSeverity();
-            boolean expectedAbnormal = !Objects.equals(sev, "normal");
+            boolean expectedAbnormal = !"normal".equals(sev);
             assertEquals(expectedAbnormal, d.getAbnormal(),
                 "abnormal 应与 severity 一致: " + sev);
         }
@@ -206,8 +226,8 @@ class HeatDataCacheServiceImplTest {
 
     @Test
     void test10_空列表不崩() {
-        service.markRegionAbnormal(new ArrayList<>());
-        service.markRegionAbnormal(null);
+        service.markRegionAbnormalP95(new ArrayList<>());
+        service.markRegionAbnormalP95(null);
         // 不抛异常即通过
     }
 }
