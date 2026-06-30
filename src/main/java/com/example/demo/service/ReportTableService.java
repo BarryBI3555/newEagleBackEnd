@@ -36,6 +36,10 @@ import com.example.demo.entity.AcdJieanlBm;
 import com.example.demo.entity.AcdJieanlRy;
 import com.example.demo.entity.AcdPacllCxZgs;
 import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdLingjieBm;
+import com.example.demo.entity.AcdLingjieGroups;
+import com.example.demo.entity.AcdLingjieZxzt;
+import com.example.demo.entity.AcdLingjieGroup;
 import com.example.demo.entity.AcdPflsgnSyxz;
 import com.example.demo.entity.AcdPflsgnKhqZgs;
 import com.example.demo.entity.AcdPflsgnSyxzZgs;
@@ -307,6 +311,14 @@ public interface ReportTableService {
     /** 零结案-人员 */
     List<AcdLingjieRy> getLingjieRyData(String tjDate, String groups, String username);
     PageResult<AcdLingjieRy> getLingjieRyDataPage(String tjDate, String groups, String username, int current, int size);
+
+    /**
+     * 零结案-小组（合成：bm + groups + zxzt 三表内存合并）
+     * 顺序：bm → groups → zxzt
+     * bm 行 groups 留空；zxzt 行 groups 留空
+     * zxzt 字段映射: lingjie_num_1_3→ljl1_3 / lingjie_num_month→ljl4 / lingjie_num_week→ljlWeek
+     */
+    List<AcdLingjieGroup> getLingjieGroupData(String tjDate, String comname, String groups);
 
     // ==================== 成本管控新增 14 张表 (2026-06) ====================
 

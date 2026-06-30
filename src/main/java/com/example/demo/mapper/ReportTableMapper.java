@@ -36,6 +36,9 @@ import com.example.demo.entity.AcdJieanlBm;
 import com.example.demo.entity.AcdJieanlRy;
 import com.example.demo.entity.AcdPacllCxZgs;
 import com.example.demo.entity.AcdLingjieRy;
+import com.example.demo.entity.AcdLingjieBm;
+import com.example.demo.entity.AcdLingjieGroups;
+import com.example.demo.entity.AcdLingjieZxzt;
 import com.example.demo.entity.AcdPflsgnSyxz;
 import com.example.demo.entity.AcdPflsgnKhqZgs;
 import com.example.demo.entity.AcdPflsgnSyxzZgs;
@@ -681,6 +684,18 @@ public interface ReportTableMapper{
             @Param("tjDate") String tjDate,
             @Param("groups") String groups,
             @Param("username") String username);
+
+    /** 零结案-部门（tjdate only） */
+    List<AcdLingjieBm> getLingjieBmData(@Param("tjDate") String tjDate);
+
+    /** 零结案-小组（tjdate + comname + groups） */
+    List<AcdLingjieGroups> getLingjieGroupsData(
+            @Param("tjDate") String tjDate,
+            @Param("comname") String comname,
+            @Param("groups") String groups);
+
+    /** 零结案-中心整体（tjdate only） */
+    List<AcdLingjieZxzt> getLingjieZxztData(@Param("tjDate") String tjDate);
 
     // ==================== 成本管控新增 14 张表 (2026-06) ====================
 
